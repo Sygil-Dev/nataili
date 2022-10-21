@@ -5,7 +5,7 @@
 invisible-watermark==0.1.5
 taming-transformers-rom1504==0.0.6  # required by ldm
 
-git+https://github.com/crowsonkb/k-diffusion.git
+git+https://github.com/crowsonkb/k-diffusion
 
 # Dependencies required for Stable Diffusion UI
 pynvml==11.4.1
