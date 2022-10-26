@@ -1,1 +1,1 @@
-./runtime.sh python bridge.sh
+./runtime.sh python bridge.py
