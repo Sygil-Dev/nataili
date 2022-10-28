@@ -182,6 +182,7 @@ class ModelManager():
         config_path = self.get_model_files(model_name)[1]['path']
         model = self.load_model_from_config(model_path=ckpt_path, config_path=config_path)
         device = torch.device(f"cuda:{gpu_id}")
+        model = model if precision == 'full' else model.half()
         if not self.disable_voodoo:
             model = push_model_to_plasma(model) if isinstance(model, torch.nn.Module) else model
         else:
