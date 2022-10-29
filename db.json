@@ -238,7 +238,8 @@
     "config": {
       "files": [
         {
-          "path": "models/custom/mo-di-diffusion.ckpt"
+          "path": "models/custom/mo-di-diffusion.ckpt",
+          "md5sum": "393f79603e5cab05307670d0f71a5193"
         },
         {
           "path": "configs/stable-diffusion/v1-inference.yaml"
