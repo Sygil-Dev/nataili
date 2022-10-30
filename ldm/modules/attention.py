@@ -7,6 +7,8 @@ import sys
 from torch import nn, einsum
 from einops import rearrange, repeat
 from typing import Optional, Any
+from nataili.util import logger
+
 
 from ldm.modules.diffusionmodules.util import checkpoint
 
@@ -17,19 +19,28 @@ if sys.version_info < (3, 8):
 else:
     import importlib.metadata as importlib_metadata
 
-xformers_available = importlib.util.find_spec("xformers") is not None
-try:
-    importlib_metadata.version("xformers")
-except importlib_metadata.PackageNotFoundError:
-    xformers_available = False
-xformers_available = False
-if xformers_available:
-    import xformers
-    import xformers.ops
+from numba import cuda as ncuda
+device = ncuda.get_current_device()
 
-    print("Using xformers optimizations")
+logger.init("xformers optimizations", status="Checking")
+if (7, 0) <= torch.cuda.get_device_capability(device) <= (9, 0):
+    xformers_available = importlib.util.find_spec("xformers") is not None
+    try:
+        importlib_metadata.version("xformers")
+
+    except importlib_metadata.PackageNotFoundError:
+        xformers_available = False
+    if xformers_available:
+        import xformers
+        import xformers.ops
+        logger.init_ok("xformers optimizations", status="Loaded")
+    else:
+        xformers = None
+        logger.init_err("xformers optimizations", status="Missing")
 else:
     xformers = None
+    logger.init_err("xformers optimizations", status="Not Possible")
+
 
 def exists(val):
     return val is not None
