@@ -2,6 +2,9 @@
 
 # Run this script with "--fix" to automatically fix the issues which can be fixed
 
+# Set the working directory to where this script is located
+cd "$(dirname ${BASH_SOURCE[0]})"
+
 # exit script directly if any command fails
 set -e
 
