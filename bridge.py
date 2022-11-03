@@ -13,10 +13,6 @@ import requests
 from PIL import Image, UnidentifiedImageError
 
 from nataili import disable_voodoo, disable_xformers
-from nataili.inference.compvis.img2img import img2img
-from nataili.inference.compvis.txt2img import txt2img
-from nataili.inference.diffusers.inpainting import inpainting
-from nataili.model_manager import ModelManager
 from nataili.util import logger, quiesce_logger, set_logger_verbosity
 from nataili.util.cache import torch_gc
 
@@ -170,9 +166,15 @@ arg_parser.add_argument(
 )
 args = arg_parser.parse_args()
 
-
 disable_xformers.toggle(args.disable_xformers)
 disable_voodoo.toggle(args.disable_voodoo)
+
+# Note: for now we cannot put them at the top of the file because the imports
+# will use the disable_voodoo and disable_xformers global variables
+from nataili.inference.compvis.img2img import img2img  # noqa: E402
+from nataili.inference.compvis.txt2img import txt2img  # noqa: E402
+from nataili.inference.diffusers.inpainting import inpainting  # noqa: E402
+from nataili.model_manager import ModelManager  # noqa: E402
 
 model = ""
 max_content_length = 1024
