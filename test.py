@@ -1,7 +1,5 @@
 import time
 
-import PIL
-
 from nataili.inference.compvis.img2img import img2img
 from nataili.inference.compvis.txt2img import txt2img
 from nataili.model_manager import ModelManager
@@ -13,19 +11,20 @@ init_image = "./01.png"
 mm = ModelManager()
 
 mm.init()
-logger.debug(f"Available dependencies:")
+logger.debug("Available dependencies:")
 for dependency in mm.available_dependencies:
     logger.debug(dependency)
 
-logger.debug(f"Available models:")
+logger.debug("Available models:")
 for model in mm.available_models:
     logger.debug(model)
 
-models_to_load = [  #'stable_diffusion',
-    #'waifu_diffusion',
+models_to_load = [
+    # 'stable_diffusion',
+    # 'waifu_diffusion',
     "trinart",
-    #'GFPGAN', 'RealESRGAN_x4plus', 'RealESRGAN_x4plus_anime_6B',
-    #'BLIP', 'ViT-L/14', 'ViT-g-14', 'ViT-H-14'
+    # 'GFPGAN', 'RealESRGAN_x4plus', 'RealESRGAN_x4plus_anime_6B',
+    # 'BLIP', 'ViT-L/14', 'ViT-g-14', 'ViT-H-14'
 ]
 logger.init(f"{models_to_load}", status="Loading")
 
@@ -51,7 +50,7 @@ def test():
 
         if model in ["stable_diffusion", "waifu_diffusion", "trinart"]:
             logger.debug(f"Running inference on {model}")
-            logger.info(f'Testing txt2img with prompt "collosal corgi"')
+            logger.info('Testing txt2img with prompt "collosal corgi"')
 
             t2i = txt2img(
                 mm.loaded_models[model]["model"],
@@ -62,7 +61,7 @@ def test():
 
             torch_gc()
 
-            logger.info(f'Testing nsfw filter with prompt "boobs"')
+            logger.info('Testing nsfw filter with prompt "boobs"')
 
             t2i = txt2img(
                 mm.loaded_models[model]["model"],
@@ -75,14 +74,14 @@ def test():
 
             torch_gc()
 
-            logger.info(f'Testing img2img with prompt "cute anime girl"')
+            logger.info('Testing img2img with prompt "cute anime girl"')
 
             i2i = img2img(
                 mm.loaded_models[model]["model"],
                 mm.loaded_models[model]["device"],
                 "test_output",
             )
-            init_img = PIL.Image.open(init_img)
+            # init_img = PIL.Image.open(init_img)
             i2i.generate("cute anime girl", init_image)
             torch_gc()
 

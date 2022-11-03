@@ -1,7 +1,7 @@
 import contextlib
 import copy
 from functools import wraps
-from typing import Dict, List, Tuple, TypeVar, Union
+from typing import Dict, List, Tuple, TypeVar
 
 import ray
 import torch

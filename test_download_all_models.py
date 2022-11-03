@@ -1,6 +1,5 @@
 # test_download_models
 import creds
-
 from nataili.model_manager import ModelManager
 
 # TODO: huggingface_hub or some way to use token instead of username/password

@@ -3,9 +3,22 @@ import base64
 import getpass
 import json
 import os
+import random
+import sys
 import time
+from base64 import binascii
+from io import BytesIO
 
 import requests
+from PIL import Image, UnidentifiedImageError
+
+from nataili import disable_voodoo, disable_xformers
+from nataili.inference.compvis.img2img import img2img
+from nataili.inference.compvis.txt2img import txt2img
+from nataili.inference.diffusers.inpainting import inpainting
+from nataili.model_manager import ModelManager
+from nataili.util import logger, quiesce_logger, set_logger_verbosity
+from nataili.util.cache import torch_gc
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument(
@@ -137,39 +150,31 @@ arg_parser.add_argument(
     "--disable_voodoo",
     action="store_true",
     default=False,
-    help="If specified this bridge will not use voodooray to offload models into RAM and save VRAM (useful for cloud providers).",
+    help=(
+        "If specified this bridge will not use voodooray to offload models into RAM and save VRAM"
+        " (useful for cloud providers)."
+    ),
 )
 arg_parser.add_argument(
     "--disable_xformers",
     action="store_true",
     default=False,
-    help="If specified this bridge will not try use xformers to speed up generations. This should normally be automatic, but in case you need to disable it manually, you can do so here.",
+    help=(
+        "If specified this bridge will not try use xformers to speed up generations."
+        " This should normally be automatic, but in case you need to disable it manually, you can do so here."
+    ),
 )
 args = arg_parser.parse_args()
 
-from nataili import disable_voodoo, disable_xformers
 
 disable_xformers.toggle(args.disable_xformers)
 disable_voodoo.toggle(args.disable_voodoo)
-import random
-from base64 import binascii
-from io import BytesIO
-
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageOps, UnidentifiedImageError
-
-from nataili.inference.compvis.img2img import img2img
-from nataili.inference.compvis.txt2img import txt2img
-from nataili.inference.diffusers.inpainting import inpainting
-from nataili.model_manager import ModelManager
-from nataili.util import logger, quiesce_logger, set_logger_verbosity
-from nataili.util.cache import torch_gc
 
 model = ""
 max_content_length = 1024
 max_length = 80
 current_softprompt = None
 softprompts = {}
-import os
 
 
 class BridgeData(object):
@@ -184,7 +189,8 @@ class BridgeData(object):
         # The api_key identifies a unique user in the horde
         self.api_key = os.environ.get("HORDE_API_KEY", "0000000000")
         # Put other users whose prompts you want to prioritize.
-        # The owner's username is always included so you don't need to add it here, unless you want it to have lower priority than another user
+        # The owner's username is always included so you don't need to add it here,
+        # unless you want it to have lower priority than another user
         self.priority_usernames = list(
             filter(
                 lambda a: a, os.environ.get("HORDE_PRIORITY_USERNAMES", "").split(",")
@@ -215,7 +221,7 @@ def bridge(interval, model_manager, bd):
     current_payload = None
     loop_retry = 0
     while True:
-        ### Pop new request from the Horde
+        # Pop new request from the Horde
         if loop_retry > 10 and current_id:
             logger.error(
                 f"Exceeded retry count {loop_retry} for generation id {current_id}. Aborting generation!"
@@ -281,16 +287,16 @@ def bridge(interval, model_manager, bd):
                 )
                 time.sleep(interval)
                 continue
-            if pop == None:
+            if pop is None:
                 logger.error(
                     f"Something has gone wrong with {horde_url}. Please inform its administrator!"
                 )
                 time.sleep(interval)
                 continue
             if not pop_req.ok:
-                message = pop["message"]
                 logger.warning(
-                    f"During gen pop, server {horde_url} responded with status code {pop_req.status_code}: {pop['message']}. Waiting for 10 seconds..."
+                    f"During gen pop, server {horde_url} responded with status code {pop_req.status_code}: "
+                    f"{pop['message']}. Waiting for 10 seconds..."
                 )
                 if "errors" in pop:
                     logger.warning(f"Detailed Request Errors: {pop['errors']}")
@@ -309,7 +315,7 @@ def bridge(interval, model_manager, bd):
                 continue
             current_id = pop["id"]
             current_payload = pop["payload"]
-        ### Generate Image
+        # Generate Image
         model = pop.get("model", available_models[0])
         # logger.info([current_id,current_payload])
         use_nsfw_censor = current_payload.get("use_nsfw_censor", False)
@@ -317,8 +323,8 @@ def bridge(interval, model_manager, bd):
             use_nsfw_censor = True
         elif any(word in current_payload["prompt"] for word in bd.censorlist):
             use_nsfw_censor = True
-        use_gfpgan = current_payload.get("use_gfpgan", True)
-        use_real_esrgan = current_payload.get("use_real_esrgan", False)
+        # use_gfpgan = current_payload.get("use_gfpgan", True)
+        # use_real_esrgan = current_payload.get("use_real_esrgan", False)
         source_processing = pop.get("source_processing")
         source_image = pop.get("source_image")
         source_mask = pop.get("source_mask")
@@ -326,7 +332,6 @@ def bridge(interval, model_manager, bd):
         gen_payload = {
             "prompt": current_payload["prompt"],
             "height": current_payload["height"],
-            "width": current_payload["width"],
             "width": current_payload["width"],
             "seed": current_payload["seed"],
             "n_iter": 1,
@@ -373,14 +378,15 @@ def bridge(interval, model_manager, bd):
                 if len(pop.get("source_mask", "")) > 10:
                     pop["source_mask"] = len(pop.get("source_mask", ""))
                 logger.error(
-                    f"Received an non-inpainting request for inpainting model. This shouldn't happen. Inform the developer. Current payload {pop}"
+                    "Received an non-inpainting request for inpainting model. This shouldn't happen. "
+                    f"Inform the developer. Current payload {pop}"
                 )
                 current_id = None
                 current_payload = None
                 current_generation = None
                 loop_retry = 0
                 continue
-                ## TODO: Send faulted
+                # TODO: Send faulted
         logger.debug(
             f"{req_type} ({model}) request with id {current_id} picked up. Initiating work..."
         )
@@ -436,7 +442,7 @@ def bridge(interval, model_manager, bd):
                         current_generation = None
                         loop_retry = 0
                         continue
-                        ## TODO: Send faulted
+                        # TODO: Send faulted
 
                 gen_payload["inpaint_img"] = img_source
 
@@ -464,7 +470,7 @@ def bridge(interval, model_manager, bd):
         # If the received image is unreadable, we continue
         except UnidentifiedImageError:
             logger.error(
-                f"Source image received for img2img is unreadable. Falling back to text2img!"
+                "Source image received for img2img is unreadable. Falling back to text2img!"
             )
             if "denoising_strength" in gen_payload:
                 del gen_payload["denoising_strength"]
@@ -477,7 +483,8 @@ def bridge(interval, model_manager, bd):
             )
         except binascii.Error:
             logger.error(
-                f"Source image received for img2img is cannot be base64 decoded (binascii.Error). Falling back to text2img!"
+                "Source image received for img2img is cannot be base64 decoded (binascii.Error). "
+                "Falling back to text2img!"
             )
             if "denoising_strength" in gen_payload:
                 del gen_payload["denoising_strength"]
@@ -490,7 +497,7 @@ def bridge(interval, model_manager, bd):
             )
         generator.generate(**gen_payload)
         torch_gc()
-        ### Submit back to horde
+        # Submit back to horde
         # images, seed, info, stats = txt2img(**current_payload)
         buffer = BytesIO()
         # We send as WebP to avoid using all the horde bandwidth
@@ -506,7 +513,7 @@ def bridge(interval, model_manager, bd):
             "max_pixels": bd.max_pixels,
         }
         current_generation = seed
-        while current_id and current_generation != None:
+        while current_id and current_generation is not None:
             try:
                 submit_req = requests.post(
                     horde_url + "/api/v2/generate/submit",
@@ -518,17 +525,19 @@ def bridge(interval, model_manager, bd):
                     submit = submit_req.json()
                 except json.decoder.JSONDecodeError:
                     logger.error(
-                        f"Something has gone wrong with {horde_url} during submit. Please inform its administrator!  (Retry {loop_retry}/10)"
+                        f"Something has gone wrong with {horde_url} during submit. "
+                        f"Please inform its administrator!  (Retry {loop_retry}/10)"
                     )
                     time.sleep(interval)
                     continue
                 if submit_req.status_code == 404:
                     logger.warning(
-                        f"The generation we were working on got stale. Aborting!"
+                        "The generation we were working on got stale. Aborting!"
                     )
                 elif not submit_req.ok:
                     logger.warning(
-                        f"During gen submit, server {horde_url} responded with status code {submit_req.status_code}: {submit['message']}. Waiting for 10 seconds...  (Retry {loop_retry}/10)"
+                        f"During gen submit, server {horde_url} responded with status code {submit_req.status_code}: "
+                        f"{submit['message']}. Waiting for 10 seconds...  (Retry {loop_retry}/10)"
                     )
                     if "errors" in submit:
                         logger.warning(f"Detailed Request Errors: {submit['errors']}")
@@ -562,7 +571,7 @@ def check_mm_auth(model_manager):
         return
     try:
         from creds import hf_password, hf_username
-    except:
+    except ImportError:
         hf_username = input("Please type your huggingface.co username: ")
         hf_password = getpass.getpass(
             "Please type your huggingface.co Access Token or password: "
@@ -574,8 +583,6 @@ def check_mm_auth(model_manager):
 @logger.catch(reraise=True)
 def check_models(models, mm):
     logger.init("Models", status="Checking")
-    import sys
-    from os.path import exists
 
     models_exist = True
     not_found_models = []
@@ -583,7 +590,8 @@ def check_models(models, mm):
         model_info = mm.get_model(model)
         if not model_info:
             logger.error(
-                f"Model name requested {model} in bridgeData is unknown to us. Please check your configuration. Aborting!"
+                f"Model name requested {model} in bridgeData is unknown to us. "
+                "Please check your configuration. Aborting!"
             )
             sys.exit(1)
         if not args.skip_md5 and not mm.validate_model(model):
@@ -594,7 +602,8 @@ def check_models(models, mm):
             check_mm_auth(mm)
     if not models_exist:
         choice = input(
-            f"You do not appear to have downloaded the models needed yet.\nYou need at least a main model to proceed. Would you like to download your prespecified models?\n\
+            "You do not appear to have downloaded the models needed yet.\nYou need at least a main model to proceed. "
+            f"Would you like to download your prespecified models?\n\
         y: Download {not_found_models} (default).\n\
         n: Abort and exit\n\
         all: Download all models (This can take a significant amount of time and bandwidth)?\n\
@@ -621,11 +630,13 @@ def check_models(models, mm):
                 logger.init(f"Model: {model}", status="Downloading")
                 if not mm.download_model(model):
                     logger.message(
-                        "Something went wrong when downloading the model and it does not fit the expected checksum. Please check that your HuggingFace authentication is correct and that you've accepted the model license from the browser."
+                        "Something went wrong when downloading the model and it does not fit the expected checksum. "
+                        "Please check that your HuggingFace authentication is correct and that you've accepted the "
+                        "model license from the browser."
                     )
                     sys.exit(1)
     logger.init_ok("Models", status="OK")
-    if exists("./bridgeData.py"):
+    if os.path.exists("./bridgeData.py"):
         logger.init_ok("Bridge Config", status="OK")
     elif input(
         "You do not appear to have a bridgeData.py. Would you like to create it from the template now? (y/n)"
@@ -681,7 +692,7 @@ def load_bridge_data():
             bridge_data.allow_unsafe_ip = bd.allow_unsafe_ip
         except AttributeError:
             pass
-    except:
+    except (ImportError, AttributeError):
         logger.warning(
             "bridgeData.py could not be loaded. Using defaults with anonymous account"
         )
@@ -740,11 +751,14 @@ if __name__ == "__main__":
         else:
             logger.init_err(f"{model}", status="Error")
     logger.init(
-        f"API Key '{bd.api_key}'. Server Name '{bd.worker_name}'. Horde URL '{bd.horde_url}'. Max Pixels {bd.max_pixels}",
+        (
+            f"API Key '{bd.api_key}'. Server Name '{bd.worker_name}'. "
+            f"Horde URL '{bd.horde_url}'. Max Pixels {bd.max_pixels}"
+        ),
         status="Joining Horde",
     )
     try:
         bridge(args.interval, model_manager, bd)
     except KeyboardInterrupt:
-        logger.info(f"Keyboard Interrupt Received. Ending Process")
+        logger.info("Keyboard Interrupt Received. Ending Process")
     logger.init(f"{bd.worker_name} Instance", status="Stopped")

@@ -1,7 +1,7 @@
 import os
 import re
 import sys
-from contextlib import contextmanager, nullcontext
+from contextlib import nullcontext
 
 import k_diffusion as K
 import numpy as np
@@ -20,7 +20,6 @@ from nataili.util import logger
 from nataili.util.cache import torch_gc
 from nataili.util.check_prompt_length import check_prompt_length
 from nataili.util.get_next_sequence_number import get_next_sequence_number
-from nataili.util.image_grid import image_grid
 from nataili.util.load_learned_embed_in_clip import load_learned_embed_in_clip
 from nataili.util.save_sample import save_sample
 from nataili.util.seed_to_int import seed_to_int
@@ -231,27 +230,38 @@ class img2img:
         """
         Explanation:
         Getting good results in/out-painting with stable diffusion can be challenging.
-        Although there are simpler effective solutions for in-painting, out-painting can be especially challenging because there is no color data
-        in the masked area to help prompt the generator. Ideally, even for in-painting we'd like work effectively without that data as well.
+        Although there are simpler effective solutions for in-painting, out-painting can be especially challenging
+        because there is no color data in the masked area to help prompt the generator.
+
+        Ideally, even for in-painting we'd like work effectively without that data as well.
         Provided here is my take on a potential solution to this problem.
 
-        By taking a fourier transform of the masked src img we get a function that tells us the presence and orientation of each feature scale in the unmasked src.
-        Shaping the init/seed noise for in/outpainting to the same distribution of feature scales, orientations, and positions increases output coherence
-        by helping keep features aligned. This technique is applicable to any continuous generation task such as audio or video, each of which can
-        be conceptualized as a series of out-painting steps where the last half of the input "frame" is erased. For multi-channel data such as color
-        or stereo sound the "color tone" or histogram of the seed noise can be matched to improve quality (using scikit-image currently)
-        This method is quite robust and has the added benefit of being fast independently of the size of the out-painted area.
-        The effects of this method include things like helping the generator integrate the pre-existing view distance and camera angle.
+        By taking a fourier transform of the masked src img we get a function that tells us the presence and
+        orientation of each feature scale in the unmasked src.
+        Shaping the init/seed noise for in/outpainting to the same distribution of feature scales, orientations,
+        and positions increases output coherence by helping keep features aligned.
+        This technique is applicable to any continuous generation task such as audio or video, each of which can
+        be conceptualized as a series of out-painting steps where the last half of the input "frame" is erased.
+        For multi-channel data such as color or stereo sound the "color tone" or histogram of the seed noise
+        can be matched to improve quality (using scikit-image currently)
+        This method is quite robust and has the added benefit of being fast independently of the size of the
+        out-painted area.
+        The effects of this method include things like helping the generator integrate the pre-existing
+        view distance and camera angle.
 
         Carefully managing color and brightness with histogram matching is also essential to achieving good coherence.
 
-        noise_q controls the exponent in the fall-off of the distribution can be any positive number, lower values means higher detail (range > 0, default 1.)
-        color_variation controls how much freedom is allowed for the colors/palette of the out-painted area (range 0..1, default 0.01)
+        noise_q controls the exponent in the fall-off of the distribution can be any positive number,
+        lower values means higher detail (range > 0, default 1.)
+        color_variation controls how much freedom is allowed for the colors/palette of the out-painted area
+        (range 0..1, default 0.01)
         This code is provided as is under the Unlicense (https://unlicense.org/)
-        Although you have no obligation to do so, if you found this code helpful please find it in your heart to credit me [parlance-zz].
+        Although you have no obligation to do so, if you found this code helpful please find it in your heart
+        to credit me [parlance-zz].
 
         Questions or comments can be sent to parlance@fifth-harmonic.com (https://github.com/parlance-zz/)
-        This code is part of a new branch of a discord bot I am working on integrating with diffusers (https://github.com/parlance-zz/g-diffuser-bot)
+        This code is part of a new branch of a discord bot I am working on integrating with diffusers
+        (https://github.com/parlance-zz/g-diffuser-bot)
 
         """
 
@@ -262,10 +272,11 @@ class img2img:
         height = _np_src_image.shape[1]
         num_channels = _np_src_image.shape[2]
 
-        np_src_image = _np_src_image[:] * (1.0 - np_mask_rgb)
+        # FIXME: the commented lines are never used. remove?
+        # np_src_image = _np_src_image[:] * (1.0 - np_mask_rgb)
         np_mask_grey = np.sum(np_mask_rgb, axis=2) / 3.0
-        np_src_grey = np.sum(np_src_image, axis=2) / 3.0
-        all_mask = np.ones((width, height), dtype=bool)
+        # np_src_grey = np.sum(np_src_image, axis=2) / 3.0
+        # all_mask = np.ones((width, height), dtype=bool)
         img_mask = np_mask_grey > 1e-6
         ref_mask = np_mask_grey < 1e-3
 
@@ -273,10 +284,11 @@ class img2img:
             1.0 - self._get_masked_window_rgb(np_mask_grey)
         )
         windowed_image /= np.max(windowed_image)
-        windowed_image += (
-            np.average(_np_src_image) * np_mask_rgb
-        )  # / (1.-np.average(np_mask_rgb))  # rather than leave the masked area black, we get better results from fft by filling the average unmasked color
-        # windowed_image += np.average(_np_src_image) * (np_mask_rgb * (1.- np_mask_rgb)) / (1.-np.average(np_mask_rgb)) # compensate for darkening across the mask transition area
+        windowed_image += np.average(_np_src_image) * np_mask_rgb
+        # / (1.-np.average(np_mask_rgb))  # rather than leave the masked area black,
+        # we get better results from fft by filling the average unmasked color
+        # windowed_image += np.average(_np_src_image) * (np_mask_rgb * (1.- np_mask_rgb)) /
+        # (1.-np.average(np_mask_rgb)) # compensate for darkening across the mask transition area
         # _save_debug_img(windowed_image, "windowed_src_img")
 
         src_fft = self._fft2(
@@ -306,7 +318,8 @@ class img2img:
             * src_phase
         )  # perform the actual shaping
 
-        brightness_variation = 0.0  # color_variation # todo: temporarily tieing brightness variation to color variation for now
+        brightness_variation = 0.0  # color_variation
+        # todo: temporarily tieing brightness variation to color variation for now
         contrast_adjusted_np_src = (
             _np_src_image[:] * (brightness_variation + 1.0) - brightness_variation * 2.0
         )
@@ -327,14 +340,16 @@ class img2img:
 
         matched_noise = np.zeros((width, height, num_channels))
         matched_noise = shaped_noise[:]
-        # matched_noise[all_mask,:] = skimage.exposure.match_histograms(shaped_noise[all_mask,:], _np_src_image[ref_mask,:], channel_axis=1)
+        # matched_noise[all_mask,:] = skimage.exposure.match_histograms(shaped_noise[all_mask,:],
+        # _np_src_image[ref_mask,:], channel_axis=1)
         # matched_noise = _np_src_image[:] * (1. - np_mask_rgb) + matched_noise * np_mask_rgb
 
         # _save_debug_img(matched_noise, "matched_noise")
 
         """
         todo:
-        color_variation doesnt have to be a single number, the overall color tone of the out-painted area could be param controlled
+        color_variation doesnt have to be a single number,
+        the overall color tone of the out-painted area could be param controlled
         """
 
         return np.clip(matched_noise, 0.0, 1.0)
@@ -561,6 +576,7 @@ class img2img:
                 def sample(
                     init_data, x, conditioning, unconditional_conditioning, sampler_name
                 ):
+                    nonlocal sampler
                     t_enc_steps = t_enc
                     obliterate = False
                     if ddim_steps == t_enc_steps:
@@ -642,7 +658,7 @@ class img2img:
                 if self.verify_input:
                     try:
                         check_prompt_length(model, prompt, self.comments)
-                    except:
+                    except Exception:
                         import traceback
 
                         print("Error verifying input:", file=sys.stderr)
@@ -825,7 +841,7 @@ class img2img:
             if self.verify_input:
                 try:
                     check_prompt_length(self.model, prompt, self.comments)
-                except:
+                except Exception:
                     import traceback
 
                     print("Error verifying input:", file=sys.stderr)
@@ -910,7 +926,7 @@ class img2img:
                 {prompt}
                 Steps: {ddim_steps}, Sampler: {sampler_name}, CFG scale: {cfg_scale}, Seed: {seed}
                 """.strip()
-        self.stats = f"""
+        self.stats = """
                 """
 
         for comment in self.comments:

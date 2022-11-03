@@ -1,7 +1,7 @@
 import os
 import re
 import sys
-from contextlib import contextmanager, nullcontext
+from contextlib import nullcontext
 
 import numpy as np
 import PIL
@@ -17,7 +17,6 @@ from nataili.util import logger
 from nataili.util.cache import torch_gc
 from nataili.util.check_prompt_length import check_prompt_length
 from nataili.util.get_next_sequence_number import get_next_sequence_number
-from nataili.util.image_grid import image_grid
 from nataili.util.load_learned_embed_in_clip import load_learned_embed_in_clip
 from nataili.util.save_sample import save_sample
 from nataili.util.seed_to_int import seed_to_int
@@ -179,7 +178,7 @@ class txt2img:
                 if self.verify_input:
                     try:
                         check_prompt_length(model, prompt, self.comments)
-                    except:
+                    except Exception:
                         import traceback
 
                         print("Error verifying input:", file=sys.stderr)
@@ -251,6 +250,7 @@ class txt2img:
             def sample(
                 init_data, x, conditioning, unconditional_conditioning, sampler_name
             ):
+                nonlocal sampler
                 samples_ddim, _ = sampler.sample(
                     S=ddim_steps,
                     conditioning=conditioning,
@@ -275,7 +275,7 @@ class txt2img:
             if self.verify_input:
                 try:
                     check_prompt_length(self.model, prompt, self.comments)
-                except:
+                except Exception:
                     import traceback
 
                     print("Error verifying input:", file=sys.stderr)
@@ -361,7 +361,7 @@ class txt2img:
                 {prompt}
                 Steps: {ddim_steps}, Sampler: {sampler_name}, CFG scale: {cfg_scale}, Seed: {seed}
                 """.strip()
-        self.stats = f"""
+        self.stats = """
                 """
 
         for comment in self.comments:

@@ -22,7 +22,7 @@ from ldm.models.blip import blip_decoder
 from ldm.util import instantiate_from_config
 
 try:
-    from nataili.util.voodoo import load_from_plasma, push_model_to_plasma
+    from nataili.util.voodoo import push_model_to_plasma
 except ModuleNotFoundError as e:
     from nataili import disable_voodoo
 
@@ -53,7 +53,7 @@ class ModelManager:
                 r = requests.get(remote_dependencies)
                 self.dependencies = json.load(open("./db_dep.json"))
                 logger.init_ok("Model Reference", status="OK")
-            except:
+            except Exception:
                 logger.init_err("Model Reference", status="Download Error")
                 self.models = json.load(open("./db.json"))
                 self.dependencies = json.load(open("./db_dep.json"))
@@ -357,7 +357,6 @@ class ModelManager:
 
     def validate_model(self, model_name):
         files = self.get_model_files(model_name)
-        all_ok = True
         for file_details in files:
             if not self.check_file_available(file_details["path"]):
                 return False
@@ -435,7 +434,8 @@ class ModelManager:
 
             if "manual" in download[i]:
                 logger.warning(
-                    f"The model {model_name} requires manual download from {download_url}. Please place it in {download_path}/{download_name} then press ENTER to continue..."
+                    f"The model {model_name} requires manual download from {download_url}. "
+                    f"Please place it in {download_path}/{download_name} then press ENTER to continue..."
                 )
                 input("")
                 continue
@@ -469,7 +469,8 @@ class ModelManager:
                                 shutil.rmtree(post_process["delete"])
                             except PermissionError as e:
                                 logger.error(
-                                    f"[!] Something went wrong while deleting the `{post_process['delete']}`. Please delete it manually."
+                                    f"[!] Something went wrong while deleting the `{post_process['delete']}`. "
+                                    "Please delete it manually."
                                 )
                                 logger.error("PermissionError: ", e)
             else:
@@ -554,6 +555,9 @@ class ModelManager:
         self.download_all_models()
         return True
 
+    """
+    FIXME: this method is present twice, commenting first one...
+
     def check_all_available(self):
         for model in self.models:
             if not self.check_available(self.get_model_files(model)):
@@ -562,6 +566,7 @@ class ModelManager:
             if not self.check_available(self.get_dependency_files(dependency)):
                 return False
         return True
+    """
 
     def check_model_available(self, model_name):
         if model_name not in self.models:

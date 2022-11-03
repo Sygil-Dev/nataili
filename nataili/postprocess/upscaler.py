@@ -9,9 +9,7 @@
 import os
 
 import cv2
-import numpy as np
 import PIL
-from torchvision import transforms
 
 from nataili.util.save_sample import save_sample
 
