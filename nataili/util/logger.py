@@ -1,5 +1,6 @@
 import sys
 from functools import partialmethod
+
 from loguru import logger
 
 STDOUT_LEVELS = ["GENERATION", "PROMPT"]

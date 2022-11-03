@@ -7,10 +7,13 @@ import numpy as np
 import PIL
 import torch
 from einops import rearrange
+from slugify import slugify
+from transformers import CLIPFeatureExtractor
+
 from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.models.diffusion.kdiffusion import KDiffusionSampler
 from ldm.models.diffusion.plms import PLMSSampler
-from transformers import CLIPFeatureExtractor
+from nataili.util import logger
 from nataili.util.cache import torch_gc
 from nataili.util.check_prompt_length import check_prompt_length
 from nataili.util.get_next_sequence_number import get_next_sequence_number
@@ -18,8 +21,6 @@ from nataili.util.image_grid import image_grid
 from nataili.util.load_learned_embed_in_clip import load_learned_embed_in_clip
 from nataili.util.save_sample import save_sample
 from nataili.util.seed_to_int import seed_to_int
-from slugify import slugify
-from nataili.util import logger
 
 try:
     from nataili.util.voodoo import load_from_plasma, performance

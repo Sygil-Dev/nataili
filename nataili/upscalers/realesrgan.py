@@ -6,11 +6,12 @@
 #  - output_ext
 # outupts:
 #  - output_images
+import os
+
+import cv2
+import numpy as np
 import PIL
 from torchvision import transforms
-import numpy as np
-import os
-import cv2
 
 from nataili.util.save_sample import save_sample
 

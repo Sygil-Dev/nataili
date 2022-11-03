@@ -1,29 +1,28 @@
-import os
+import hashlib
 import json
+import os
 import shutil
 import zipfile
-import requests
+
+import clip
 import git
+import open_clip
+import requests
 import torch
-import hashlib
-from ldm.util import instantiate_from_config
+from basicsr.archs.rrdbnet_arch import RRDBNet
+from diffusers import StableDiffusionInpaintPipeline
+from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker
+from gfpgan import GFPGANer
 from omegaconf import OmegaConf
+from realesrgan import RealESRGANer
+from tqdm import tqdm
 from transformers import logging
 
-from basicsr.archs.rrdbnet_arch import RRDBNet
-from gfpgan import GFPGANer
-from realesrgan import RealESRGANer
 from ldm.models.blip import blip_decoder
-from tqdm import tqdm
-import open_clip
-import clip
-from diffusers.pipelines.stable_diffusion.safety_checker import (
-    StableDiffusionSafetyChecker,
-)
-from diffusers import StableDiffusionInpaintPipeline
+from ldm.util import instantiate_from_config
 
 try:
-    from nataili.util.voodoo import push_model_to_plasma, load_from_plasma
+    from nataili.util.voodoo import load_from_plasma, push_model_to_plasma
 except ModuleNotFoundError as e:
     from nataili import disable_voodoo
 
@@ -31,8 +30,8 @@ except ModuleNotFoundError as e:
         raise e
 
 
-from nataili.util.cache import torch_gc
 from nataili.util import logger
+from nataili.util.cache import torch_gc
 
 logging.set_verbosity_error()
 

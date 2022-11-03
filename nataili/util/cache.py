@@ -1,9 +1,9 @@
 import gc
-
-import torch
 import threading
-import pynvml
 import time
+
+import pynvml
+import torch
 
 with torch.no_grad():
 

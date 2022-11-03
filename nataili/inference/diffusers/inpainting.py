@@ -1,19 +1,20 @@
 import os
 import re
 import sys
+from contextlib import nullcontext
+
 import PIL
 import PIL.ImageOps
 import torch
-from contextlib import nullcontext
-from slugify import slugify
 from diffusers import StableDiffusionInpaintPipeline
+from slugify import slugify
 
+from nataili.util import logger
 from nataili.util.cache import torch_gc
 from nataili.util.check_prompt_length import check_prompt_length
 from nataili.util.get_next_sequence_number import get_next_sequence_number
 from nataili.util.save_sample import save_sample
 from nataili.util.seed_to_int import seed_to_int
-from nataili.util import logger
 
 
 class inpainting:

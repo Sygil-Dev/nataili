@@ -1,4 +1,11 @@
-import requests, json, os, time, argparse, urllib3, time, base64, re, getpass
+import argparse
+import base64
+import getpass
+import json
+import os
+import time
+
+import requests
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument(
@@ -140,29 +147,22 @@ arg_parser.add_argument(
 )
 args = arg_parser.parse_args()
 
-from nataili import disable_xformers, disable_voodoo
+from nataili import disable_voodoo, disable_xformers
 
 disable_xformers.toggle(args.disable_xformers)
 disable_voodoo.toggle(args.disable_voodoo)
-from nataili.inference.diffusers.inpainting import inpainting
-from nataili.inference.compvis.img2img import img2img
-from nataili.model_manager import ModelManager
-from nataili.inference.compvis.txt2img import txt2img
-from nataili.util.cache import torch_gc
-from nataili.util import logger, set_logger_verbosity, quiesce_logger
-from PIL import (
-    Image,
-    ImageFont,
-    ImageDraw,
-    ImageFilter,
-    ImageOps,
-    ImageChops,
-    UnidentifiedImageError,
-)
-from io import BytesIO
-from base64 import binascii
-
 import random
+from base64 import binascii
+from io import BytesIO
+
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageOps, UnidentifiedImageError
+
+from nataili.inference.compvis.img2img import img2img
+from nataili.inference.compvis.txt2img import txt2img
+from nataili.inference.diffusers.inpainting import inpainting
+from nataili.model_manager import ModelManager
+from nataili.util import logger, quiesce_logger, set_logger_verbosity
+from nataili.util.cache import torch_gc
 
 model = ""
 max_content_length = 1024
@@ -561,7 +561,7 @@ def check_mm_auth(model_manager):
     if model_manager.has_authentication():
         return
     try:
-        from creds import hf_username, hf_password
+        from creds import hf_password, hf_username
     except:
         hf_username = input("Please type your huggingface.co username: ")
         hf_password = getpass.getpass(
@@ -574,8 +574,8 @@ def check_mm_auth(model_manager):
 @logger.catch(reraise=True)
 def check_models(models, mm):
     logger.init("Models", status="Checking")
-    from os.path import exists
     import sys
+    from os.path import exists
 
     models_exist = True
     not_found_models = []

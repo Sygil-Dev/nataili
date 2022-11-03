@@ -1,11 +1,12 @@
-from nataili.inference.compvis.img2img import img2img
-from nataili.model_manager import ModelManager
-from nataili.inference.compvis.txt2img import txt2img
-from nataili.util.cache import torch_gc
-from nataili.util.logger import logger
 import time
+
 import PIL
 
+from nataili.inference.compvis.img2img import img2img
+from nataili.inference.compvis.txt2img import txt2img
+from nataili.model_manager import ModelManager
+from nataili.util.cache import torch_gc
+from nataili.util.logger import logger
 
 init_image = "./01.png"
 
