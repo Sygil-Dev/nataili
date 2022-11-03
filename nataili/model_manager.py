@@ -37,9 +37,7 @@ logging.set_verbosity_error()
 
 models = json.load(open("./db.json"))
 dependencies = json.load(open("./db_dep.json"))
-remote_models = (
-    "https://raw.githubusercontent.com/Sygil-Dev/nataili-model-reference/main/db.json"
-)
+remote_models = "https://raw.githubusercontent.com/Sygil-Dev/nataili-model-reference/main/db.json"
 remote_dependencies = "https://raw.githubusercontent.com/Sygil-Dev/nataili-model-reference/main/db_dep.json"
 
 
@@ -192,18 +190,12 @@ class ModelManager:
     def load_ckpt(self, model_name="", precision="half", gpu_id=0):
         ckpt_path = self.get_model_files(model_name)[0]["path"]
         config_path = self.get_model_files(model_name)[1]["path"]
-        model = self.load_model_from_config(
-            model_path=ckpt_path, config_path=config_path
-        )
+        model = self.load_model_from_config(model_path=ckpt_path, config_path=config_path)
         device = torch.device(f"cuda:{gpu_id}")
         model = model if precision == "full" else model.half()
         if not self.disable_voodoo:
             logger.debug(f"Doing voodoo on {model_name}")
-            model = (
-                push_model_to_plasma(model)
-                if isinstance(model, torch.nn.Module)
-                else model
-            )
+            model = push_model_to_plasma(model) if isinstance(model, torch.nn.Module) else model
         else:
             model = (model if precision == "full" else model.half()).to(device)
         torch_gc()
@@ -289,9 +281,7 @@ class ModelManager:
 
     def load_clip(self, model_name="", precision="half", gpu_id=0):
         device = torch.device(f"cuda:{gpu_id}")
-        model, preprocesses = clip.load(
-            model_name, device=device, download_root="models/clip"
-        )
+        model, preprocesses = clip.load(model_name, device=device, download_root="models/clip")
         model = model.eval()
         model = (model if precision == "full" else model.half()).to(device)
         return {"model": model, "device": device, "preprocesses": preprocesses}
@@ -310,40 +300,28 @@ class ModelManager:
         if model_name not in self.available_models:
             return False
         if self.models[model_name]["type"] == "ckpt":
-            self.loaded_models[model_name] = self.load_ckpt(
-                model_name, precision, gpu_id
-            )
+            self.loaded_models[model_name] = self.load_ckpt(model_name, precision, gpu_id)
             return True
         elif self.models[model_name]["type"] == "realesrgan":
-            self.loaded_models[model_name] = self.load_realesrgan(
-                model_name, precision, gpu_id
-            )
+            self.loaded_models[model_name] = self.load_realesrgan(model_name, precision, gpu_id)
             return True
         elif self.models[model_name]["type"] == "gfpgan":
             self.loaded_models[model_name] = self.load_gfpgan(model_name, gpu_id)
             return True
         elif self.models[model_name]["type"] == "blip":
-            self.loaded_models[model_name] = self.load_blip(
-                model_name, precision, gpu_id, 512, "base"
-            )
+            self.loaded_models[model_name] = self.load_blip(model_name, precision, gpu_id, 512, "base")
             return True
         elif self.models[model_name]["type"] == "open_clip":
-            self.loaded_models[model_name] = self.load_open_clip(
-                model_name, precision, gpu_id
-            )
+            self.loaded_models[model_name] = self.load_open_clip(model_name, precision, gpu_id)
             return True
         elif self.models[model_name]["type"] == "clip":
-            self.loaded_models[model_name] = self.load_clip(
-                model_name, precision, gpu_id
-            )
+            self.loaded_models[model_name] = self.load_clip(model_name, precision, gpu_id)
             return True
         elif self.models[model_name]["type"] == "diffusers":
             self.loaded_models[model_name] = self.load_diffuser(model_name)
             return True
         elif self.models[model_name]["type"] == "safety_checker":
-            self.loaded_models[model_name] = self.load_safety_checker(
-                model_name, gpu_id
-            )
+            self.loaded_models[model_name] = self.load_safety_checker(model_name, gpu_id)
             return True
         else:
             return False
@@ -424,9 +402,7 @@ class ModelManager:
                 if "hf_auth" in download[i]:
                     username = self.hf_auth["username"]
                     password = self.hf_auth["password"]
-                    download_url = download_url.format(
-                        username=username, password=password
-                    )
+                    download_url = download_url.format(username=username, password=password)
             if "file_name" in download[i]:
                 download_name = download[i]["file_name"]
             if "file_path" in download[i]:
@@ -474,10 +450,7 @@ class ModelManager:
                                 )
                                 logger.error("PermissionError: ", e)
             else:
-                if (
-                    not self.check_file_available(file_path)
-                    or model_name in self.tainted_models
-                ):
+                if not self.check_file_available(file_path) or model_name in self.tainted_models:
                     logger.debug(f"Downloading {download_url} to {file_path}")
                     self.download_file(download_url, file_path)
         if not self.validate_model(model_name):
@@ -517,9 +490,7 @@ class ModelManager:
                 with zipfile.ZipFile(zip_path, "r") as zip_ref:
                     zip_ref.extractall("temp/")
                 # move temp/sd-concepts-library-main/sd-concepts-library to download_path
-                logger.info(
-                    f"move temp/{download_name}-main/{download_name} to {download_path}"
-                )
+                logger.info(f"move temp/{download_name}-main/{download_name} to {download_path}")
                 shutil.move(f"temp/{download_name}-main/{download_name}", download_path)
                 logger.info(f"delete {zip_path}")
                 os.remove(zip_path)

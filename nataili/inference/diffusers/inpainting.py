@@ -45,11 +45,7 @@ class inpainting:
         self.filter_nsfw = filter_nsfw
 
     def resize_image(self, resize_mode, im, width, height):
-        LANCZOS = (
-            PIL.Image.Resampling.LANCZOS
-            if hasattr(PIL.Image, "Resampling")
-            else PIL.Image.LANCZOS
-        )
+        LANCZOS = PIL.Image.Resampling.LANCZOS if hasattr(PIL.Image, "Resampling") else PIL.Image.LANCZOS
         if resize_mode == "resize":
             res = im.resize((width, height), resample=LANCZOS)
         elif resize_mode == "crop":
@@ -188,18 +184,10 @@ class inpainting:
                         sample_path_i = sample_path
                         base_count = get_next_sequence_number(sample_path_i)
                         full_path = os.path.join(os.getcwd(), sample_path)
-                        filename = (
-                            f"{base_count:05}-{ddim_steps}_{seed}_{sanitized_prompt}"[
-                                : 200 - len(full_path)
-                            ]
-                        )
+                        filename = f"{base_count:05}-{ddim_steps}_{seed}_{sanitized_prompt}"[: 200 - len(full_path)]
 
-                        path = os.path.join(
-                            sample_path, filename + "." + self.save_extension
-                        )
-                        success = save_sample(
-                            x_sample, filename, sample_path_i, self.save_extension
-                        )
+                        path = os.path.join(sample_path, filename + "." + self.save_extension)
+                        success = save_sample(x_sample, filename, sample_path_i, self.save_extension)
 
                         if success:
                             if self.output_file_path:

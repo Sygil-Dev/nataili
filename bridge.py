@@ -117,22 +117,26 @@ arg_parser.add_argument(
     required=False,
     help="Which model to run on this horde.",
 )
-arg_parser.add_argument(
-    "--debug", action="store_true", default=False, help="Show debugging messages."
-)
+arg_parser.add_argument("--debug", action="store_true", default=False, help="Show debugging messages.")
 arg_parser.add_argument(
     "-v",
     "--verbosity",
     action="count",
     default=0,
-    help="The default logging level is ERROR or higher. This value increases the amount of logging seen in your screen",
+    help=(
+        "The default logging level is ERROR or higher. "
+        "This value increases the amount of logging seen in your screen"
+    ),
 )
 arg_parser.add_argument(
     "-q",
     "--quiet",
     action="count",
     default=0,
-    help="The default logging level is ERROR or higher. This value decreases the amount of logging seen in your screen",
+    help=(
+        "The default logging level is ERROR or higher. "
+        "This value decreases the amount of logging seen in your screen"
+    ),
 )
 arg_parser.add_argument(
     "--log_file",
@@ -191,26 +195,16 @@ class BridgeData(object):
         # Put other users whose prompts you want to prioritize.
         # The owner's username is always included so you don't need to add it here,
         # unless you want it to have lower priority than another user
-        self.priority_usernames = list(
-            filter(
-                lambda a: a, os.environ.get("HORDE_PRIORITY_USERNAMES", "").split(",")
-            )
-        )
+        self.priority_usernames = list(filter(lambda a: a, os.environ.get("HORDE_PRIORITY_USERNAMES", "").split(",")))
         self.max_power = int(os.environ.get("HORDE_MAX_POWER", 8))
         self.nsfw = os.environ.get("HORDE_NSFW", "true") == "true"
         self.censor_nsfw = os.environ.get("HORDE_CENSOR", "false") == "true"
-        self.blacklist = list(
-            filter(lambda a: a, os.environ.get("HORDE_BLACKLIST", "").split(","))
-        )
-        self.censorlist = list(
-            filter(lambda a: a, os.environ.get("HORDE_CENSORLIST", "").split(","))
-        )
+        self.blacklist = list(filter(lambda a: a, os.environ.get("HORDE_BLACKLIST", "").split(",")))
+        self.censorlist = list(filter(lambda a: a, os.environ.get("HORDE_CENSORLIST", "").split(",")))
         self.allow_img2img = os.environ.get("HORDE_IMG2IMG", "true") == "true"
         self.allow_painting = os.environ.get("HORDE_PAINTING", "true") == "true"
         self.allow_unsafe_ip = os.environ.get("HORDE_ALLOW_UNSAFE_IP", "true") == "true"
-        self.model_names = os.environ.get("HORDE_MODELNAMES", "stable_diffusion").split(
-            ","
-        )
+        self.model_names = os.environ.get("HORDE_MODELNAMES", "stable_diffusion").split(",")
         self.max_pixels = 64 * 64 * 8 * self.max_power
 
 
@@ -223,17 +217,13 @@ def bridge(interval, model_manager, bd):
     while True:
         # Pop new request from the Horde
         if loop_retry > 10 and current_id:
-            logger.error(
-                f"Exceeded retry count {loop_retry} for generation id {current_id}. Aborting generation!"
-            )
+            logger.error(f"Exceeded retry count {loop_retry} for generation id {current_id}. Aborting generation!")
             current_id = None
             current_payload = None
             current_generation = None
             loop_retry = 0
         elif current_id:
-            logger.debug(
-                f"Retrying ({loop_retry}/10) for generation id {current_id}..."
-            )
+            logger.debug(f"Retrying ({loop_retry}/10) for generation id {current_id}...")
         available_models = model_manager.get_loaded_models_names()
         if "safety_checker" in available_models:
             available_models.remove("safety_checker")
@@ -262,35 +252,25 @@ def bridge(interval, model_manager, bd):
                     timeout=10,
                 )
             except requests.exceptions.ConnectionError:
-                logger.warning(
-                    f"Server {horde_url} unavailable during pop. Waiting 10 seconds..."
-                )
+                logger.warning(f"Server {horde_url} unavailable during pop. Waiting 10 seconds...")
                 time.sleep(10)
                 continue
             except TypeError:
-                logger.warning(
-                    f"Server {horde_url} unavailable during pop. Waiting 2 seconds..."
-                )
+                logger.warning(f"Server {horde_url} unavailable during pop. Waiting 2 seconds...")
                 time.sleep(2)
                 continue
             except requests.exceptions.ReadTimeout:
-                logger.warning(
-                    f"Server {horde_url} timed out during pop. Waiting 2 seconds..."
-                )
+                logger.warning(f"Server {horde_url} timed out during pop. Waiting 2 seconds...")
                 time.sleep(2)
                 continue
             try:
                 pop = pop_req.json()
             except json.decoder.JSONDecodeError:
-                logger.error(
-                    f"Could not decode response from {horde_url} as json. Please inform its administrator!"
-                )
+                logger.error(f"Could not decode response from {horde_url} as json. Please inform its administrator!")
                 time.sleep(interval)
                 continue
             if pop is None:
-                logger.error(
-                    f"Something has gone wrong with {horde_url}. Please inform its administrator!"
-                )
+                logger.error(f"Something has gone wrong with {horde_url}. Please inform its administrator!")
                 time.sleep(interval)
                 continue
             if not pop_req.ok:
@@ -308,9 +288,7 @@ def bridge(interval, model_manager, bd):
                     skipped_info = f" Skipped Info: {skipped_info}."
                 else:
                     skipped_info = ""
-                logger.debug(
-                    f"Server {horde_url} has no valid generations to do for us.{skipped_info}"
-                )
+                logger.debug(f"Server {horde_url} has no valid generations to do for us.{skipped_info}")
                 time.sleep(interval)
                 continue
             current_id = pop["id"]
@@ -387,9 +365,7 @@ def bridge(interval, model_manager, bd):
                 loop_retry = 0
                 continue
                 # TODO: Send faulted
-        logger.debug(
-            f"{req_type} ({model}) request with id {current_id} picked up. Initiating work..."
-        )
+        logger.debug(f"{req_type} ({model}) request with id {current_id} picked up. Initiating work...")
         try:
             safety_checker = (
                 model_manager.loaded_models["safety_checker"]["model"]
@@ -434,9 +410,7 @@ def bridge(interval, model_manager, bd):
                     try:
                         red, green, blue, alpha = img_source.split()
                     except ValueError:
-                        logger.warning(
-                            "inpainting image doesn't have an alpha channel. Aborting gen"
-                        )
+                        logger.warning("inpainting image doesn't have an alpha channel. Aborting gen")
                         current_id = None
                         current_payload = None
                         current_generation = None
@@ -469,9 +443,7 @@ def bridge(interval, model_manager, bd):
             continue
         # If the received image is unreadable, we continue
         except UnidentifiedImageError:
-            logger.error(
-                "Source image received for img2img is unreadable. Falling back to text2img!"
-            )
+            logger.error("Source image received for img2img is unreadable. Falling back to text2img!")
             if "denoising_strength" in gen_payload:
                 del gen_payload["denoising_strength"]
             generator = txt2img(
@@ -531,9 +503,7 @@ def bridge(interval, model_manager, bd):
                     time.sleep(interval)
                     continue
                 if submit_req.status_code == 404:
-                    logger.warning(
-                        "The generation we were working on got stale. Aborting!"
-                    )
+                    logger.warning("The generation we were working on got stale. Aborting!")
                 elif not submit_req.ok:
                     logger.warning(
                         f"During gen submit, server {horde_url} responded with status code {submit_req.status_code}: "
@@ -573,9 +543,7 @@ def check_mm_auth(model_manager):
         from creds import hf_password, hf_username
     except ImportError:
         hf_username = input("Please type your huggingface.co username: ")
-        hf_password = getpass.getpass(
-            "Please type your huggingface.co Access Token or password: "
-        )
+        hf_password = getpass.getpass("Please type your huggingface.co Access Token or password: ")
     hf_auth = {"username": hf_username, "password": hf_password}
     model_manager.set_authentication(hf_auth=hf_auth)
 
@@ -641,9 +609,7 @@ def check_models(models, mm):
     elif input(
         "You do not appear to have a bridgeData.py. Would you like to create it from the template now? (y/n)"
     ) in ["y", "Y", "", "yes"]:
-        with open("bridgeData_template.py", "r") as firstfile, open(
-            "bridgeData.py", "a"
-        ) as secondfile:
+        with open("bridgeData_template.py", "r") as firstfile, open("bridgeData.py", "a") as secondfile:
             for line in firstfile:
                 secondfile.write(line)
         logger.message(
@@ -693,9 +659,7 @@ def load_bridge_data():
         except AttributeError:
             pass
     except (ImportError, AttributeError):
-        logger.warning(
-            "bridgeData.py could not be loaded. Using defaults with anonymous account"
-        )
+        logger.warning("bridgeData.py could not be loaded. Using defaults with anonymous account")
     if args.api_key:
         bridge_data.api_key = args.api_key
     if args.worker_name:
@@ -734,9 +698,7 @@ if __name__ == "__main__":
 
     set_logger_verbosity(args.verbosity)
     if args.log_file:
-        logger.add(
-            "koboldai_bridge_log.log", retention="7 days", level="warning"
-        )  # Automatically rotate too big file
+        logger.add("koboldai_bridge_log.log", retention="7 days", level="warning")  # Automatically rotate too big file
     quiesce_logger(args.quiet)
     bd = load_bridge_data()
     # test_logger()

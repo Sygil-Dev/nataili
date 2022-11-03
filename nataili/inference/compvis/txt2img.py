@@ -151,9 +151,7 @@ class txt2img:
                 else:
                     raise Exception("Unknown sampler: " + sampler_name)
 
-                def sample(
-                    init_data, x, conditioning, unconditional_conditioning, sampler_name
-                ):
+                def sample(init_data, x, conditioning, unconditional_conditioning, sampler_name):
                     samples_ddim, _ = sampler.sample(
                         S=ddim_steps,
                         conditioning=conditioning,
@@ -215,9 +213,7 @@ class txt2img:
                         )
 
                         x_samples_ddim = model.decode_first_stage(samples_ddim)
-                        x_samples_ddim = torch.clamp(
-                            (x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0
-                        )
+                        x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
         else:
             seed = seed_to_int(seed)
 
@@ -247,9 +243,7 @@ class txt2img:
             else:
                 raise Exception("Unknown sampler: " + sampler_name)
 
-            def sample(
-                init_data, x, conditioning, unconditional_conditioning, sampler_name
-            ):
+            def sample(init_data, x, conditioning, unconditional_conditioning, sampler_name):
                 nonlocal sampler
                 samples_ddim, _ = sampler.sample(
                     S=ddim_steps,
@@ -314,9 +308,7 @@ class txt2img:
                     )
 
                     x_samples_ddim = self.model.decode_first_stage(samples_ddim)
-                    x_samples_ddim = torch.clamp(
-                        (x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0
-                    )
+                    x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
 
         for i, x_sample in enumerate(x_samples_ddim):
             sanitized_prompt = slugify(prompts[i])
@@ -331,9 +323,7 @@ class txt2img:
             x_sample = x_sample.astype(np.uint8)
             image = PIL.Image.fromarray(x_sample)
             if self.safety_checker is not None and self.filter_nsfw:
-                image_features = self.feature_extractor(image, return_tensors="pt").to(
-                    self.device
-                )
+                image_features = self.feature_extractor(image, return_tensors="pt").to(self.device)
                 output_images, has_nsfw_concept = self.safety_checker(
                     clip_input=image_features.pixel_values, images=x_sample
                 )
@@ -346,9 +336,7 @@ class txt2img:
 
             if save_individual_images:
                 path = os.path.join(sample_path, filename + "." + self.save_extension)
-                success = save_sample(
-                    image, filename, sample_path_i, self.save_extension
-                )
+                success = save_sample(image, filename, sample_path_i, self.save_extension)
                 if success:
                     if self.output_file_path:
                         self.output_images.append(path)

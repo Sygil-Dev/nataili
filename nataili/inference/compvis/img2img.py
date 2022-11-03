@@ -106,11 +106,7 @@ class img2img:
                 return
 
     def resize_image(self, resize_mode, im, width, height):
-        LANCZOS = (
-            PIL.Image.Resampling.LANCZOS
-            if hasattr(PIL.Image, "Resampling")
-            else PIL.Image.LANCZOS
-        )
+        LANCZOS = PIL.Image.Resampling.LANCZOS if hasattr(PIL.Image, "Resampling") else PIL.Image.LANCZOS
         if resize_mode == "resize":
             res = im.resize((width, height), resample=LANCZOS)
         elif resize_mode == "crop":
@@ -168,9 +164,7 @@ class img2img:
     # helper fft routines that keep ortho normalization and auto-shift before and after fft
     def _fft2(self, data):
         if data.ndim > 2:  # has channels
-            out_fft = np.zeros(
-                (data.shape[0], data.shape[1], data.shape[2]), dtype=np.complex128
-            )
+            out_fft = np.zeros((data.shape[0], data.shape[1], data.shape[2]), dtype=np.complex128)
             for c in range(data.shape[2]):
                 c_data = data[:, :, c]
                 out_fft[:, :, c] = np.fft.fft2(np.fft.fftshift(c_data), norm="ortho")
@@ -184,9 +178,7 @@ class img2img:
 
     def _ifft2(self, data):
         if data.ndim > 2:  # has channels
-            out_ifft = np.zeros(
-                (data.shape[0], data.shape[1], data.shape[2]), dtype=np.complex128
-            )
+            out_ifft = np.zeros((data.shape[0], data.shape[1], data.shape[2]), dtype=np.complex128)
             for c in range(data.shape[2]):
                 c_data = data[:, :, c]
                 out_ifft[:, :, c] = np.fft.ifft2(np.fft.fftshift(c_data), norm="ortho")
@@ -280,9 +272,7 @@ class img2img:
         img_mask = np_mask_grey > 1e-6
         ref_mask = np_mask_grey < 1e-3
 
-        windowed_image = _np_src_image * (
-            1.0 - self._get_masked_window_rgb(np_mask_grey)
-        )
+        windowed_image = _np_src_image * (1.0 - self._get_masked_window_rgb(np_mask_grey))
         windowed_image /= np.max(windowed_image)
         windowed_image += np.average(_np_src_image) * np_mask_rgb
         # / (1.-np.average(np_mask_rgb))  # rather than leave the masked area black,
@@ -291,16 +281,12 @@ class img2img:
         # (1.-np.average(np_mask_rgb)) # compensate for darkening across the mask transition area
         # _save_debug_img(windowed_image, "windowed_src_img")
 
-        src_fft = self._fft2(
-            windowed_image
-        )  # get feature statistics from masked src img
+        src_fft = self._fft2(windowed_image)  # get feature statistics from masked src img
         src_dist = np.absolute(src_fft)
         src_phase = src_fft / src_dist
         # _save_debug_img(src_dist, "windowed_src_dist")
 
-        noise_window = self._get_gaussian_window(
-            width, height, mode=1
-        )  # start with simple gaussian noise
+        noise_window = self._get_gaussian_window(width, height, mode=1)  # start with simple gaussian noise
         noise_rgb = np.random.random_sample((width, height, num_channels))
         noise_grey = np.sum(noise_rgb, axis=2) / 3.0
         noise_rgb *= color_variation  # the colorfulness of the starting noise is blended to greyscale with a parameter
@@ -313,16 +299,12 @@ class img2img:
         noise_rgb = np.real(self._ifft2(noise_fft))
         shaped_noise_fft = self._fft2(noise_rgb)
         shaped_noise_fft[:, :, :] = (
-            np.absolute(shaped_noise_fft[:, :, :]) ** 2
-            * (src_dist**noise_q)
-            * src_phase
+            np.absolute(shaped_noise_fft[:, :, :]) ** 2 * (src_dist**noise_q) * src_phase
         )  # perform the actual shaping
 
         brightness_variation = 0.0  # color_variation
         # todo: temporarily tieing brightness variation to color variation for now
-        contrast_adjusted_np_src = (
-            _np_src_image[:] * (brightness_variation + 1.0) - brightness_variation * 2.0
-        )
+        contrast_adjusted_np_src = _np_src_image[:] * (brightness_variation + 1.0) - brightness_variation * 2.0
 
         # scikit-image is used for histogram matching, very convenient!
         shaped_noise = np.real(self._ifft2(shaped_noise_fft))
@@ -333,9 +315,7 @@ class img2img:
             contrast_adjusted_np_src[ref_mask, :],
             channel_axis=1,
         )
-        shaped_noise = (
-            _np_src_image[:] * (1.0 - np_mask_rgb) + shaped_noise * np_mask_rgb
-        )
+        shaped_noise = _np_src_image[:] * (1.0 - np_mask_rgb) + shaped_noise * np_mask_rgb
         # _save_debug_img(shaped_noise, "shaped_noise")
 
         matched_noise = np.zeros((width, height, num_channels))
@@ -388,9 +368,7 @@ class img2img:
             sigma_in = torch.cat([sigmas[i - 1] * s_in] * 2)
             cond_in = torch.cat([uncond, cond])
 
-            c_out, c_in = [
-                K.utils.append_dims(k, x_in.ndim) for k in dnw.get_scalings(sigma_in)
-            ]
+            c_out, c_in = [K.utils.append_dims(k, x_in.ndim) for k in dnw.get_scalings(sigma_in)]
 
             if i == 1:
                 t = dnw.sigma_to_t(torch.cat([sigmas[i] * s_in] * 2))
@@ -460,9 +438,7 @@ class img2img:
             init_mask = self.resize_image(resize_mode, init_mask, width, height)
             init_mask = init_mask.convert("RGB")
 
-        assert (
-            0.0 <= denoising_strength <= 1.0
-        ), "can only work with strength in [0.0, 1.0]"
+        assert 0.0 <= denoising_strength <= 1.0, "can only work with strength in [0.0, 1.0]"
         t_enc = int(denoising_strength * ddim_steps)
 
         if (
@@ -477,30 +453,20 @@ class img2img:
             np_init = (np.asarray(init_img.convert("RGB")) / 255.0).astype(
                 np.float64
             )  # annoyingly complex mask fixing
-            np_mask_rgb = 1.0 - (
-                np.asarray(PIL.ImageOps.invert(init_mask).convert("RGB")) / 255.0
-            ).astype(np.float64)
+            np_mask_rgb = 1.0 - (np.asarray(PIL.ImageOps.invert(init_mask).convert("RGB")) / 255.0).astype(np.float64)
             np_mask_rgb -= np.min(np_mask_rgb)
             np_mask_rgb /= np.max(np_mask_rgb)
             np_mask_rgb = 1.0 - np_mask_rgb
             np_mask_rgb_hardened = 1.0 - (np_mask_rgb < 0.99).astype(np.float64)
-            blurred = skimage.filters.gaussian(
-                np_mask_rgb_hardened[:], sigma=16.0, channel_axis=2, truncate=32.0
-            )
-            blurred2 = skimage.filters.gaussian(
-                np_mask_rgb_hardened[:], sigma=16.0, channel_axis=2, truncate=32.0
-            )
+            blurred = skimage.filters.gaussian(np_mask_rgb_hardened[:], sigma=16.0, channel_axis=2, truncate=32.0)
+            blurred2 = skimage.filters.gaussian(np_mask_rgb_hardened[:], sigma=16.0, channel_axis=2, truncate=32.0)
             # np_mask_rgb_dilated = np_mask_rgb + blurred  # fixup mask todo: derive magic constants
             # np_mask_rgb = np_mask_rgb + blurred
             np_mask_rgb_dilated = np.clip((np_mask_rgb + blurred2) * 0.7071, 0.0, 1.0)
             np_mask_rgb = np.clip((np_mask_rgb + blurred) * 0.7071, 0.0, 1.0)
 
-            noise_rgb = self.get_matched_noise(
-                np_init, np_mask_rgb, noise_q, color_variation
-            )
-            blend_mask_rgb = np.clip(np_mask_rgb_dilated, 0.0, 1.0) ** (
-                mask_blend_factor
-            )
+            noise_rgb = self.get_matched_noise(np_init, np_mask_rgb, noise_q, color_variation)
+            blend_mask_rgb = np.clip(np_mask_rgb_dilated, 0.0, 1.0) ** (mask_blend_factor)
             noised = noise_rgb[:]
             blend_mask_rgb **= 2.0
             noised = np_init[:] * (1.0 - blend_mask_rgb) + noised * blend_mask_rgb
@@ -513,9 +479,7 @@ class img2img:
                 noised[all_mask, :] ** 1.0, noised[ref_mask, :], channel_axis=1
             )
 
-            init_img = PIL.Image.fromarray(
-                np.clip(noised * 255.0, 0.0, 255.0).astype(np.uint8), mode="RGB"
-            )
+            init_img = PIL.Image.fromarray(np.clip(noised * 255.0, 0.0, 255.0).astype(np.uint8), mode="RGB")
         if not self.disable_voodoo:
             with load_from_plasma(self.model, self.device) as model:
                 seed = seed_to_int(seed)
@@ -549,9 +513,7 @@ class img2img:
 
                     mask_channel = None
                     if init_mask:
-                        alpha = self.resize_image(
-                            resize_mode, init_mask, width // 8, height // 8
-                        )
+                        alpha = self.resize_image(resize_mode, init_mask, width // 8, height // 8)
                         mask_channel = alpha.split()[-1]
 
                     mask = None
@@ -573,9 +535,7 @@ class img2img:
                         mask,
                     )
 
-                def sample(
-                    init_data, x, conditioning, unconditional_conditioning, sampler_name
-                ):
+                def sample(init_data, x, conditioning, unconditional_conditioning, sampler_name):
                     nonlocal sampler
                     t_enc_steps = t_enc
                     obliterate = False
@@ -598,9 +558,7 @@ class img2img:
 
                         sigma_sched = sigmas[ddim_steps - t_enc_steps - 1 :]
                         model_wrap_cfg = CFGMaskedDenoiser(sampler.model_wrap)
-                        samples_ddim = K.sampling.__dict__[
-                            f"sample_{sampler.get_sampler_name()}"
-                        ](
+                        samples_ddim = K.sampling.__dict__[f"sample_{sampler.get_sampler_name()}"](
                             model_wrap_cfg,
                             xi,
                             sigma_sched,
@@ -618,9 +576,7 @@ class img2img:
 
                         x0, z_mask = init_data
 
-                        sampler.make_schedule(
-                            ddim_num_steps=ddim_steps, ddim_eta=0.0, verbose=False
-                        )
+                        sampler.make_schedule(ddim_num_steps=ddim_steps, ddim_eta=0.0, verbose=False)
                         z_enc = sampler.stochastic_encode(
                             x0,
                             torch.tensor([t_enc_steps] * batch_size).to(model.device),
@@ -697,9 +653,7 @@ class img2img:
                         )
 
                         x_samples_ddim = model.decode_first_stage(samples_ddim)
-                        x_samples_ddim = torch.clamp(
-                            (x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0
-                        )
+                        x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
 
         else:
             seed = seed_to_int(seed)
@@ -733,9 +687,7 @@ class img2img:
 
                 mask_channel = None
                 if init_mask:
-                    alpha = self.resize_image(
-                        resize_mode, init_mask, width // 8, height // 8
-                    )
+                    alpha = self.resize_image(resize_mode, init_mask, width // 8, height // 8)
                     mask_channel = alpha.split()[-1]
 
                 mask = None
@@ -757,9 +709,7 @@ class img2img:
                     mask,
                 )
 
-            def sample(
-                init_data, x, conditioning, unconditional_conditioning, sampler_name
-            ):
+            def sample(init_data, x, conditioning, unconditional_conditioning, sampler_name):
                 t_enc_steps = t_enc
                 obliterate = False
                 if ddim_steps == t_enc_steps:
@@ -781,9 +731,7 @@ class img2img:
 
                     sigma_sched = sigmas[ddim_steps - t_enc_steps - 1 :]
                     model_wrap_cfg = CFGMaskedDenoiser(sampler.model_wrap)
-                    samples_ddim = K.sampling.__dict__[
-                        f"sample_{sampler.get_sampler_name()}"
-                    ](
+                    samples_ddim = K.sampling.__dict__[f"sample_{sampler.get_sampler_name()}"](
                         model_wrap_cfg,
                         xi,
                         sigma_sched,
@@ -801,9 +749,7 @@ class img2img:
 
                     x0, z_mask = init_data
 
-                    sampler.make_schedule(
-                        ddim_num_steps=ddim_steps, ddim_eta=0.0, verbose=False
-                    )
+                    sampler.make_schedule(ddim_num_steps=ddim_steps, ddim_eta=0.0, verbose=False)
                     z_enc = sampler.stochastic_encode(
                         x0,
                         torch.tensor([t_enc_steps] * batch_size).to(self.model.device),
@@ -880,9 +826,7 @@ class img2img:
                     )
 
                     x_samples_ddim = self.model.decode_first_stage(samples_ddim)
-                    x_samples_ddim = torch.clamp(
-                        (x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0
-                    )
+                    x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
 
         for i, x_sample in enumerate(x_samples_ddim):
             sanitized_prompt = slugify(prompts[i])
@@ -897,9 +841,7 @@ class img2img:
             x_sample = x_sample.astype(np.uint8)
             image = PIL.Image.fromarray(x_sample)
             if self.safety_checker is not None and self.filter_nsfw:
-                image_features = self.feature_extractor(image, return_tensors="pt").to(
-                    self.device
-                )
+                image_features = self.feature_extractor(image, return_tensors="pt").to(self.device)
                 output_images, has_nsfw_concept = self.safety_checker(
                     clip_input=image_features.pixel_values, images=x_sample
                 )
@@ -912,9 +854,7 @@ class img2img:
 
             if save_individual_images:
                 path = os.path.join(sample_path, filename + "." + self.save_extension)
-                success = save_sample(
-                    image, filename, sample_path_i, self.save_extension
-                )
+                success = save_sample(image, filename, sample_path_i, self.save_extension)
                 if success:
                     if self.output_file_path:
                         self.output_images.append(path)
