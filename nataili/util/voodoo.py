@@ -8,12 +8,14 @@ import torch
 
 T = TypeVar("T")
 
+
 def performance(f: T) -> T:
     @wraps(f)
     def wrapper(*args, **kwargs):
         return torch.cuda.amp.autocast()(torch.no_grad()(f))(*args, **kwargs)
 
     return wrapper
+
 
 def extract_tensors(m: torch.nn.Module) -> Tuple[torch.nn.Module, List[Dict]]:
     tensors = []
@@ -61,6 +63,7 @@ def load_from_plasma(ref, device="cuda"):
     skeleton.eval().to(device, memory_format=torch.channels_last)
     yield skeleton
     torch.cuda.empty_cache()
+
 
 def push_model_to_plasma(model: torch.nn.Module) -> ray.ObjectRef:
     ref = ray.put(extract_tensors(model))

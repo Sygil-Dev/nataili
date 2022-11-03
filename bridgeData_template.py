@@ -33,7 +33,7 @@ allow_unsafe_ip = True
 # if you do not know which models you can add here, use the below command
 # python show_available_models.py
 models_to_load = [
-    "stable_diffusion", # This is the standard compvis model. It is not using Diffusers (yet)
+    "stable_diffusion",  # This is the standard compvis model. It is not using Diffusers (yet)
     ## Specialized Style models
     # "trinart",
     # "Furry Epoch",
@@ -45,6 +45,5 @@ models_to_load = [
     # "Elden Ring Diffusion",
     # "Robo-Diffusion",
     # "mo-di-diffusion",
-
     # "stable_diffusion_inpainting", # Enable this to allow inpainting/outpainting. Careful of trying to enable this in tandem with other models if you have 8G or less VRAM!
 ]

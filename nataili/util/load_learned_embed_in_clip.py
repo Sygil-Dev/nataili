@@ -3,22 +3,26 @@ import os
 import torch
 
 
-def load_learned_embed_in_clip(learned_embeds_path, text_encoder, tokenizer, token=None):
+def load_learned_embed_in_clip(
+    learned_embeds_path, text_encoder, tokenizer, token=None
+):
     loaded_learned_embeds = torch.load(learned_embeds_path, map_location="cpu")
     # separate token and the embeds
-    if learned_embeds_path.endswith('.pt'):
+    if learned_embeds_path.endswith(".pt"):
         # old format
         # token = * so replace with file directory name when converting
         trained_token = os.path.basename(learned_embeds_path)
         params_dict = {
-            trained_token: torch.tensor(list(loaded_learned_embeds['string_to_param'].items())[0][1])
+            trained_token: torch.tensor(
+                list(loaded_learned_embeds["string_to_param"].items())[0][1]
+            )
         }
-        learned_embeds_path = os.path.splitext(learned_embeds_path)[0] + '.bin'
+        learned_embeds_path = os.path.splitext(learned_embeds_path)[0] + ".bin"
         torch.save(params_dict, learned_embeds_path)
         loaded_learned_embeds = torch.load(learned_embeds_path, map_location="cpu")
         trained_token = list(loaded_learned_embeds.keys())[0]
         embeds = loaded_learned_embeds[trained_token]
-    elif learned_embeds_path.endswith('.bin'):
+    elif learned_embeds_path.endswith(".bin"):
         trained_token = list(loaded_learned_embeds.keys())[0]
         embeds = loaded_learned_embeds[trained_token]
 
