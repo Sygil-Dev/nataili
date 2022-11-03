@@ -21,6 +21,6 @@ fi
 
 SRC="*.py nataili"
 
-black $BLACK_OPTS $SRC
+black --line-length=119 $BLACK_OPTS $SRC
 flake8 $SRC
 isort $ISORT_OPTS $SRC
