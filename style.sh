@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 # Run this script with "--fix" to automatically fix the issues which can be fixed
 
