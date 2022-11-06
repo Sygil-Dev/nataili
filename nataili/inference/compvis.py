@@ -1,14 +1,12 @@
 import os
 import re
 import sys
-from contextlib import nullcontext
 
 import k_diffusion as K
 import numpy as np
 import PIL
 import skimage
 import torch
-import tqdm
 from einops import rearrange
 from slugify import slugify
 from transformers import CLIPFeatureExtractor
@@ -23,7 +21,7 @@ from nataili.util.get_next_sequence_number import get_next_sequence_number
 
 from nataili.util.save_sample import save_sample
 from nataili.util.seed_to_int import seed_to_int
-from nataili.util.img2img import *
+from nataili.util.img2img import resize_image, process_init_mask, get_matched_noise
 from nataili.util.create_random_tensors import create_random_tensors
 
 try:
@@ -182,6 +180,7 @@ class CompVis:
             )
 
         def sample_img2img(init_data, x, conditioning, unconditional_conditioning, sampler_name):
+            nonlocal sampler
             t_enc_steps = t_enc
             obliterate = False
             if ddim_steps == t_enc_steps:
@@ -266,7 +265,7 @@ class CompVis:
         if self.load_concepts and self.concepts_dir is not None:
             prompt_tokens = re.findall("<([a-zA-Z0-9-]+)>", prompt)
             if prompt_tokens:
-                self.process_prompt_tokens(prompt_tokens, model)
+                self.process_prompt_tokens(prompt_tokens, self.model)
 
         os.makedirs(self.output_dir, exist_ok=True)
 

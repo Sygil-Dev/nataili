@@ -36,17 +36,17 @@ allow_unsafe_ip = True
 # python show_available_models.py
 models_to_load = [
     "stable_diffusion",  # This is the standard compvis model. It is not using Diffusers (yet)
-    ## Specialized Style models:
+    # Specialized Style models:
     # "trinart",
     # "Furry Epoch",
     # "Yiffy",
     # "waifu_diffusion",
-    ## Dreambooth Models:
+    # Dreambooth Models:
     # "Arcane Diffusion",
     # "Spider-Verse Diffusion",
     # "Elden Ring Diffusion",
     # "Robo-Diffusion",
     # "mo-di-diffusion",
-    ## Enable this to allow inpainting/outpainting.
+    # Enable this to allow inpainting/outpainting.
     # "stable_diffusion_inpainting",
 ]

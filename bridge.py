@@ -294,7 +294,7 @@ class BridgeData(object):
                 )
                 user_req = user_req.json()
                 self.username = user_req["username"]
-            except:
+            except Exception:
                 logger.warning(f"Server {self.horde_url} error during find_user. Setting username 'N/A'")
                 self.username = "N/A"
         if not self.initialized or previous_url != self.horde_url:
@@ -330,7 +330,8 @@ class BridgeData(object):
                 check_mm_auth(mm)
         if not models_exist:
             choice = input(
-                "You do not appear to have downloaded the models needed yet.\nYou need at least a main model to proceed. "
+                "You do not appear to have downloaded the models needed yet.\n"
+                "You need at least a main model to proceed. "
                 f"Would you like to download your prespecified models?\n\
             y: Download {not_found_models} (default).\n\
             n: Abort and exit\n\
@@ -358,9 +359,9 @@ class BridgeData(object):
                     logger.init(f"Model: {model}", status="Downloading")
                     if not mm.download_model(model):
                         logger.message(
-                            "Something went wrong when downloading the model and it does not fit the expected checksum. "
-                            "Please check that your HuggingFace authentication is correct and that you've accepted the "
-                            "model license from the browser."
+                            "Something went wrong when downloading the model and it does not fit the expected "
+                            "checksum. Please check that your HuggingFace authentication is correct and that "
+                            "you've accepted the model license from the browser."
                         )
                         sys.exit(1)
             mm.init()
@@ -376,7 +377,8 @@ class BridgeData(object):
                 for line in firstfile:
                     secondfile.write(line)
             logger.message(
-                "bridgeData.py created. Bridge will exit. Please edit bridgeData.py with your setup and restart the bridge"
+                "bridgeData.py created. Bridge will exit. "
+                "Please edit bridgeData.py with your setup and restart the bridge"
             )
             sys.exit(2)
 
@@ -706,7 +708,8 @@ def bridge(interval, model_manager, bd):
                     logger.warning("The generation we were working on got stale. Aborting!")
                 elif not submit_req.ok:
                     logger.warning(
-                        f"During gen submit, server {bd.horde_url} responded with status code {submit_req.status_code}: "
+                        f"During gen submit, server {bd.horde_url} "
+                        f"responded with status code {submit_req.status_code}: "
                         f"{submit['message']}. Waiting for 10 seconds...  (Retry {loop_retry}/10)"
                     )
                     if "errors" in submit:
