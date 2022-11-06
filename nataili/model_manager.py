@@ -274,13 +274,13 @@ class ModelManager:
 
     def load_data_lists(self, data_path="data/img2txt"):
         data_lists = {}
-        data_lists['artists'] = load_list(os.path.join(data_path, 'artists.txt'))
-        data_lists['flavors'] = load_list(os.path.join(data_path, 'flavors.txt'))
-        data_lists['mediums'] = load_list(os.path.join(data_path, 'mediums.txt'))
-        data_lists['movements'] = load_list(os.path.join(data_path, 'movements.txt'))
-        data_lists['sites'] = load_list(os.path.join(data_path, 'sites.txt'))
-        data_lists['techniques'] = load_list(os.path.join(data_path, 'techniques.txt'))
-        data_lists['tags'] = load_list(os.path.join(data_path, 'tags.txt'))
+        data_lists["artists"] = load_list(os.path.join(data_path, "artists.txt"))
+        data_lists["flavors"] = load_list(os.path.join(data_path, "flavors.txt"))
+        data_lists["mediums"] = load_list(os.path.join(data_path, "mediums.txt"))
+        data_lists["movements"] = load_list(os.path.join(data_path, "movements.txt"))
+        data_lists["sites"] = load_list(os.path.join(data_path, "sites.txt"))
+        data_lists["techniques"] = load_list(os.path.join(data_path, "techniques.txt"))
+        data_lists["tags"] = load_list(os.path.join(data_path, "tags.txt"))
         return data_lists
 
     def load_open_clip(self, model_name="", precision="half", gpu_id=0, data_path="data/img2txt"):

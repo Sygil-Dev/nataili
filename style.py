@@ -3,7 +3,7 @@ import subprocess
 import sys
 import os
 
-src=[
+src = [
     "*.py",
     "nataili",
 ]
@@ -20,14 +20,14 @@ arg_parser.add_argument(
 )
 args = arg_parser.parse_args()
 
-black_args=[
+black_args = [
     "black",
     "--line-length=119",
 ]
-flake8_args=[
+flake8_args = [
     "flake8",
 ]
-isort_args=[
+isort_args = [
     "isort",
 ]
 
@@ -42,7 +42,7 @@ else:
     isort_args.append("--check-only")
     isort_args.append("--diff")
 
-lint_processes=[
+lint_processes = [
     black_args,
     flake8_args,
     isort_args,
@@ -51,7 +51,7 @@ lint_processes=[
 for process_args in lint_processes:
     process_args.extend(src)
 
-    command = ' '.join(process_args)
+    command = " ".join(process_args)
     print(f"\nRunning {command}")
     try:
         subprocess.run(command, shell=True, check=True)

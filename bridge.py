@@ -216,6 +216,7 @@ class BridgeData(object):
         previous_api_key = self.api_key
         try:
             import bridgeData as bd
+
             importlib.reload(bd)
             self.api_key = bd.api_key
             self.worker_name = bd.worker_name
@@ -306,7 +307,7 @@ class BridgeData(object):
             )
 
     @logger.catch(reraise=True)
-    def check_models(self,mm):
+    def check_models(self, mm):
         if not self.initialized:
             logger.init("Models", status="Checking")
         models_exist = True
@@ -458,7 +459,9 @@ def bridge(interval, model_manager, bd):
             try:
                 pop = pop_req.json()
             except json.decoder.JSONDecodeError:
-                logger.error(f"Could not decode response from {bd.horde_url} as json. Please inform its administrator!")
+                logger.error(
+                    f"Could not decode response from {bd.horde_url} as json. Please inform its administrator!"
+                )
                 time.sleep(interval)
                 continue
             if pop is None:
@@ -656,14 +659,12 @@ def bridge(interval, model_manager, bd):
                 generator.generate(**gen_payload)
                 torch_gc()
             except RuntimeError:
-                logger.error(
-                    "Rescue Attempt also failed. Aborting!"
-                )
+                logger.error("Rescue Attempt also failed. Aborting!")
                 current_id = None
                 current_payload = None
                 current_generation = None
                 loop_retry = 0
-                continue                
+                continue
         # Submit back to horde
         # images, seed, info, stats = txt2img(**current_payload)
         buffer = BytesIO()
@@ -691,9 +692,7 @@ def bridge(interval, model_manager, bd):
                     headers=headers,
                     timeout=20,
                 )
-                logger.debug(
-                    f"Upload completed in {submit_req.elapsed.total_seconds()}"
-                )
+                logger.debug(f"Upload completed in {submit_req.elapsed.total_seconds()}")
                 try:
                     submit = submit_req.json()
                 except json.decoder.JSONDecodeError:

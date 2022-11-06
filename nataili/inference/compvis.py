@@ -34,6 +34,7 @@ except ModuleNotFoundError as e:
     if not disable_voodoo.active:
         raise e
 
+
 class CompVis:
     def __init__(
         self,
@@ -173,9 +174,7 @@ class CompVis:
 
             init_image = 2.0 * image - 1.0
             init_image = init_image.to(model.device)
-            init_latent = model.get_first_stage_encoding(
-                model.encode_first_stage(init_image)
-            )  # move to latent space
+            init_latent = model.get_first_stage_encoding(model.encode_first_stage(init_image))  # move to latent space
 
             return (
                 init_latent,
@@ -263,7 +262,7 @@ class CompVis:
             prompt, negprompt = prompt.split("###", 1)
             prompt = prompt.strip()
             negprompt = negprompt.strip()
-        
+
         if self.load_concepts and self.concepts_dir is not None:
             prompt_tokens = re.findall("<([a-zA-Z0-9-]+)>", prompt)
             if prompt_tokens:
@@ -326,18 +325,22 @@ class CompVis:
 
                         x = create_random_tensors(shape, seeds=seeds, device=self.device)
                         init_data = init(model, init_img) if init_img else None
-                        samples_ddim = sample_img2img(
-                            init_data=init_data,
-                            x=x,
-                            conditioning=c,
-                            unconditional_conditioning=uc,
-                            sampler_name=sampler_name,
-                        ) if init_img else sample(
-                            init_data=init_data,
-                            x=x,
-                            conditioning=c,
-                            unconditional_conditioning=uc,
-                            sampler_name=sampler_name,
+                        samples_ddim = (
+                            sample_img2img(
+                                init_data=init_data,
+                                x=x,
+                                conditioning=c,
+                                unconditional_conditioning=uc,
+                                sampler_name=sampler_name,
+                            )
+                            if init_img
+                            else sample(
+                                init_data=init_data,
+                                x=x,
+                                conditioning=c,
+                                unconditional_conditioning=uc,
+                                sampler_name=sampler_name,
+                            )
                         )
 
                         x_samples_ddim = model.decode_first_stage(samples_ddim)
@@ -395,18 +398,22 @@ class CompVis:
                     x = create_random_tensors(shape, seeds=seeds, device=self.device)
 
                     init_data = init(self.model, init_img) if init_img else None
-                    samples_ddim = sample_img2img(
-                        init_data=init_data,
-                        x=x,
-                        conditioning=c,
-                        unconditional_conditioning=uc,
-                        sampler_name=sampler_name,
-                    ) if init_img else sample(
-                        init_data=init_data,
-                        x=x,
-                        conditioning=c,
-                        unconditional_conditioning=uc,
-                        sampler_name=sampler_name,
+                    samples_ddim = (
+                        sample_img2img(
+                            init_data=init_data,
+                            x=x,
+                            conditioning=c,
+                            unconditional_conditioning=uc,
+                            sampler_name=sampler_name,
+                        )
+                        if init_img
+                        else sample(
+                            init_data=init_data,
+                            x=x,
+                            conditioning=c,
+                            unconditional_conditioning=uc,
+                            sampler_name=sampler_name,
+                        )
                     )
 
                     x_samples_ddim = self.model.decode_first_stage(samples_ddim)
