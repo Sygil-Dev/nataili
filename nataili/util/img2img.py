@@ -1,8 +1,8 @@
-import PIL
+import k_diffusion as K
 import numpy as np
+import PIL
 import skimage
 import torch
-import k_diffusion as K
 import tqdm
 
 

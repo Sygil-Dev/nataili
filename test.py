@@ -1,8 +1,8 @@
 import time
+
 import PIL
 
 from nataili.inference.compvis import CompVis
-
 from nataili.model_manager import ModelManager
 from nataili.util.cache import torch_gc
 from nataili.util.logger import logger

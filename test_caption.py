@@ -1,7 +1,9 @@
 import time
+
 import PIL
-from nataili.model_manager import ModelManager
+
 from nataili.blip.caption import Caption
+from nataili.model_manager import ModelManager
 from nataili.util import logger
 
 image = PIL.Image.open("01.png").convert("RGB")

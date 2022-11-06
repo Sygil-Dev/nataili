@@ -1,6 +1,7 @@
+import torch
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
-import torch
+
 from nataili.util.voodoo import performance
 
 
