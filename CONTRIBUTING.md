@@ -46,9 +46,17 @@ tools described above, run:
 python -m pip install -r requirements.dev.txt
 ```
 
-To setup a pre-commit hook to verify your code at each commit, run:
+To setup a pre-commit hook to verify your code at each commit:
+
+On linux, run:
 ```sh
 ln -s ../../style.sh ./.git/hooks/pre-commit
+```
+
+On windows, put this in ./.git/hooks/pre-commit :
+```sh
+#!/bin/sh
+sh style.sh
 ```
 
 ## How to create a good Pull Request

@@ -1,15 +1,26 @@
 import argparse
+import glob
 import os
 import subprocess
 import sys
 
+# Set the working directory to where this script is located
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 src = [
-    "*.py",
     "nataili",
 ]
 
-# Set the working directory to where this script is located
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+ignore_src = [
+    "bridgeData_template.py",
+    "bridgeData.py",
+]
+
+root_folder_src = glob.glob("*.py")
+
+src.extend(root_folder_src)
+
+src = [item for item in src if item not in ignore_src]
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument(
