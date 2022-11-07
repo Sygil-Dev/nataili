@@ -11,7 +11,9 @@ class Caption:
         self.device = device
 
     @performance
-    def __call__(self, image):
+    def __call__(
+        self, image, sample=True, num_beams=3, max_length=30, min_length=10, top_p=0.9, repetition_penalty=1.0
+    ):
         gpu_image = (
             transforms.Compose(
                 [
@@ -27,5 +29,13 @@ class Caption:
             .to(self.device)
         )
         with torch.no_grad():
-            caption = self.model.generate(gpu_image, max_length=20, min_length=5, num_beams=3)[0]
+            caption = self.model.generate(
+                gpu_image,
+                sample=sample,
+                num_beams=num_beams,
+                max_length=max_length,
+                min_length=min_length,
+                top_p=top_p,
+                repetition_penalty=repetition_penalty,
+            )[0]
         return caption

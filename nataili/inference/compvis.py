@@ -20,6 +20,7 @@ from nataili.util.check_prompt_length import check_prompt_length
 from nataili.util.create_random_tensors import create_random_tensors
 from nataili.util.get_next_sequence_number import get_next_sequence_number
 from nataili.util.img2img import get_matched_noise, process_init_mask, resize_image
+from nataili.util.process_prompt_tokens import process_prompt_tokens
 from nataili.util.save_sample import save_sample
 from nataili.util.seed_to_int import seed_to_int
 
@@ -284,12 +285,20 @@ class CompVis:
                     sampler = KDiffusionSampler(model, "heun")
                 elif sampler_name == "k_lms":
                     sampler = KDiffusionSampler(model, "lms")
+                elif sampler_name == "k_dpm_fast":
+                    sampler = KDiffusionSampler(model, "dpm_fast")
+                elif sampler_name == "k_dpm_adaptive":
+                    sampler = KDiffusionSampler(model, "dpm_adaptive")
+                elif sampler_name == "k_dpmpp_2s_a":
+                    sampler = KDiffusionSampler(model, "dpmpp_2s_ancestral")
+                elif sampler_name == "k_dpmpp_2m":
+                    sampler = KDiffusionSampler(model, "dpmpp_2m")
                 else:
                     raise Exception("Unknown sampler: " + sampler_name)
                 if self.load_concepts and self.concepts_dir is not None:
                     prompt_tokens = re.findall("<([a-zA-Z0-9-]+)>", prompt)
                     if prompt_tokens:
-                        self.process_prompt_tokens(prompt_tokens, model)
+                        process_prompt_tokens(prompt_tokens, model, self.concepts_dir)
                 if self.verify_input:
                     try:
                         check_prompt_length(model, prompt, self.comments)
@@ -359,12 +368,20 @@ class CompVis:
                 sampler = KDiffusionSampler(self.model, "heun")
             elif sampler_name == "k_lms":
                 sampler = KDiffusionSampler(self.model, "lms")
+            elif sampler_name == "k_dpm_fast":
+                sampler = KDiffusionSampler(self.model, "dpm_fast")
+            elif sampler_name == "k_dpm_adaptive":
+                sampler = KDiffusionSampler(self.model, "dpm_adaptive")
+            elif sampler_name == "k_dpmpp_2s_a":
+                sampler = KDiffusionSampler(self.model, "dpmpp_2s_ancestral")
+            elif sampler_name == "k_dpmpp_2m":
+                sampler = KDiffusionSampler(self.model, "dpmpp_2m")
             else:
                 raise Exception("Unknown sampler: " + sampler_name)
             if self.load_concepts and self.concepts_dir is not None:
                 prompt_tokens = re.findall("<([a-zA-Z0-9-]+)>", prompt)
                 if prompt_tokens:
-                    self.process_prompt_tokens(prompt_tokens, self.model)
+                    process_prompt_tokens(prompt_tokens, self.model, self.concepts_dir)
             if self.verify_input:
                 try:
                     check_prompt_length(self.model, prompt, self.comments)
