@@ -17,7 +17,7 @@ arg_parser.add_argument(
     action="store_true",
     default=False,
     help=(
-        "If specified this bridge will not try use xformers to speed up generations."
+        "If specified this test will not try use xformers to speed up generations."
         " This should normally be automatic, but in case you need to disable it manually, you can do so here."
     ),
 )
