@@ -40,7 +40,7 @@ class inpainting:
 
     def initialize_model(
         self,
-        config, 
+        config,
         ckpt
     ):
         config = OmegaConf.load(config)
@@ -53,10 +53,10 @@ class inpainting:
 
     def make_batch_sd(
         self,
-        image, 
-        mask, 
-        txt, 
-        device, 
+        image,
+        mask,
+        txt,
+        device,
         num_samples=1
     ):
         image = np.array(image.convert("RGB"))
@@ -78,7 +78,7 @@ class inpainting:
             "mask": repeat(mask.to(device=device), "1 ... -> n ...", n=num_samples),
             "masked_image": repeat(masked_image.to(device=device), "1 ... -> n ...", n=num_samples),
         }
-    
+
         return batch
 
     def generate(
@@ -100,7 +100,7 @@ class inpainting:
 
         seed = seed_to_int(seed)
         prng = np.random.RandomState(seed)
-        start_code = prng.randn(n_iter, 4, h//8, w//8)
+        start_code = prng.randn(n_iter, 4, height//8, width//8)
         start_code = torch.from_numpy(start_code).to(device=device, dtype=torch.float32)
 
         with torch.no_grad():
@@ -111,13 +111,13 @@ class inpainting:
 
                 for ck in model.concat_keys:
                     cc = batch[ck].float()
-                    
+
                     if ck != model.masked_image_key:
-                        bchw = [n_iter, 4, h//8, w//8]
+                        bchw = [n_iter, 4, height//8, width//8]
                         cc = torch.nn.functional.interpolate(cc, size=bchw[-2:])
                     else:
                         cc = model.get_first_stage_encoding(model.encode_first_stage(cc))
-                    
+
                     c_cat.append(cc)
 
                 c_cat = torch.cat(c_cat, dim=1)
@@ -129,8 +129,8 @@ class inpainting:
                 uc_cross = model.get_unconditional_conditioning(n_iter, "")
                 uc_full = {"c_concat": [c_cat], "c_crossattn": [uc_cross]}
 
-                shape = [model.channels, h//8, w//8]
-            
+                shape = [model.channels, height//8, width//8]
+
                 samples_cfg, intermediates = self.sampler.sample(
                     ddim_steps,
                     n_iter,
@@ -138,11 +138,11 @@ class inpainting:
                     cond,
                     verbose=False,
                     eta=1.0,
-                    unconditional_guidance_scale=scale,
+                    unconditional_guidance_scale=cfg_scale,
                     unconditional_conditioning=uc_full,
                     x_T=start_code,
                 )
-            
+
                 x_samples_ddim = model.decode_first_stage(samples_cfg)
                 result = torch.clamp((x_samples_ddim+1.0)/2.0, min=0.0, max=1.0)
                 result = result.cpu().numpy().transpose(0,2,3,1)
