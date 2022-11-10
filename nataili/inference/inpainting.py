@@ -1,3 +1,5 @@
+import os
+import re
 import sys
 import numpy as np
 import torch
@@ -214,7 +216,7 @@ class inpainting:
                         bchw = [n_iter, 4, height//8, width//8]
                         cc = torch.nn.functional.interpolate(cc, size=bchw[-2:])
                     else:
-                        cc = self.model.get_first_stage_encoding(model.encode_first_stage(cc))
+                        cc = self.model.get_first_stage_encoding(self.model.encode_first_stage(cc))
 
                     c_cat.append(cc)
 
