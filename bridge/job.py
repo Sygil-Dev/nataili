@@ -43,7 +43,7 @@ class HordeJob:
             # Pop new request from the Horde
             if self.loop_retry > 10 and self.current_id:
                 logger.error(f"Exceeded retry count {self.loop_retry} for generation id {self.current_id}. Aborting generation!")
-                self.status == JobStatus.FAULTED
+                self.status = JobStatus.FAULTED
                 break
             elif self.current_id:
                 logger.debug(f"Retrying ({self.loop_retry}/10) for generation id {self.current_id}...")
@@ -190,7 +190,7 @@ class HordeJob:
                         "Received an non-inpainting request for inpainting model. This shouldn't happen. "
                         f"Inform the developer. Current payload {pop}"
                     )
-                    self.status == JobStatus.FAULTED
+                    self.status = JobStatus.FAULTED
                     break
                     # TODO: Send faulted
             logger.debug(f"{req_type} ({model}) request with id {self.current_id} picked up. Initiating work...")
@@ -214,7 +214,7 @@ class HordeJob:
                         )
                         img_mask = img_mask.resize(img_source.size)
             except KeyError:
-                self.status == JobStatus.FAULTED
+                self.status = JobStatus.FAULTED
                 break
             # If the received image is unreadable, we continue as text2img
             except UnidentifiedImageError:
@@ -259,7 +259,7 @@ class HordeJob:
                         red, green, blue, alpha = img_source.split()
                     except ValueError:
                         logger.warning("inpainting image doesn't have an alpha channel. Aborting gen")
-                        self.status == JobStatus.FAULTED
+                        self.status = JobStatus.FAULTED
                         break
                         # TODO: Send faulted
                 gen_payload["inpaint_img"] = img_source
@@ -291,7 +291,7 @@ class HordeJob:
                     torch_gc()
                 except RuntimeError:
                     logger.error("Rescue Attempt also failed. Aborting!")
-                    self.status == JobStatus.FAULTED
+                    self.status = JobStatus.FAULTED
                     break
             # Submit back to horde
             # images, seed, info, stats = txt2img(**self.current_payload)
@@ -346,10 +346,7 @@ class HordeJob:
                         logger.info(
                             f'Submitted generation with id {self.current_id} and contributed for {submit_req.json()["reward"]}'
                         )
-                    self.current_id = None
-                    self.current_payload = None
-                    self.current_generation = None
-                    self.loop_retry = 0
+                    self.status = JobStatus.DONE
                 except requests.exceptions.ConnectionError:
                     logger.warning(
                         f"Server {self.bd.horde_url} unavailable during submit. Waiting 10 seconds...  (Retry {self.loop_retry}/10)"
