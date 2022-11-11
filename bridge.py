@@ -40,9 +40,9 @@ def bridge(model_manager, bd):
             logger.info(f"Stats this session: {model_manager.get_pretty_stats()}")
             try:
                 models_data = requests.get(bridge_data.horde_url + "/api/v2/status/models", timeout=10).json()
-                models_data.sort(key=lambda x: x["queued"] / x["count"], reverse=True)
+                models_data.sort(key=lambda x: x["queued"] / x["performance"], reverse=True)
                 top_5 = [x["name"] for x in models_data[:5]]
-                logger.info(f"Top 5 models by queued/count: {', '.join(top_5)}")
+                logger.info(f"Top 5 models by Queued MP/MPS: {', '.join(top_5)}")
             except Exception as e:
                 logger.error(f"Failed to get models_req: {e}")
             run_count = 0
