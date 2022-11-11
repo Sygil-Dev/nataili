@@ -1,5 +1,6 @@
 import time
 import json
+import requests
 
 from bridge import BridgeData, HordeJob, args, disable_voodoo
 from nataili.model_manager import ModelManager
