@@ -24,23 +24,44 @@ class HordeJob:
         self.current_payload = None
         self.current_generation = None
         self.loop_retry = 0
-        self.status = JobStatus.WORKING
+        self.status = JobStatus.INIT
+        self.skipped_info = None
         thread = threading.Thread(target=self.start_job, args=())
         thread.daemon = True
         thread.start()
 
     def is_finished(self):
-        if self.status == JobStatus.WORKING:
+        if self.status in [JobStatus.WORKING, JobStatus.POLLING, JobStatus.INIT]:
             return(False)
         else:
             return(True)
 
+    def is_polling(self):
+        if self.status in [JobStatus.POLLING]:
+            return(True)
+        else:
+            return(False)
+
+    def is_finalizing(self):
+        '''True if generation has finished even if upload is still remaining
+        '''
+        if self.status in [JobStatus.FINALIZING]:
+            return(True)
+        else:
+            return(False)
+
     def delete(self):
         del self
+
+    def prep_for_pop(self):
+        self.skipped_info = None
+        self.status = JobStatus.POLLING
 
     def start_job(self):
         while True:
             # Pop new request from the Horde
+            if self.is_finished():
+                break
             if self.loop_retry > 10 and self.current_id:
                 logger.error(f"Exceeded retry count {self.loop_retry} for generation id {self.current_id}. Aborting generation!")
                 self.status = JobStatus.FAULTED
@@ -66,18 +87,19 @@ class HordeJob:
                 "bridge_version": 6,
             }
             # logger.debug(gen_dict)
-            headers = {"apikey": self.bd.api_key}
+            self.headers = {"apikey": self.bd.api_key}
             if self.current_id:
                 self.loop_retry += 1
             else:
+                self.prep_for_pop()
                 try:
                     pop_req = requests.post(
                         self.bd.horde_url + "/api/v2/generate/pop",
                         json=gen_dict,
-                        headers=headers,
+                        headers=self.headers,
                         timeout=10,
                     )
-                    logger.debug(f"Job pop took {pop_req.elapsed.total_seconds()}")
+                    # logger.debug(f"Job pop took {pop_req.elapsed.total_seconds()}")
                 except requests.exceptions.ConnectionError:
                     logger.warning(f"Server {self.bd.horde_url} unavailable during pop. Waiting 10 seconds...")
                     time.sleep(10)
@@ -112,16 +134,17 @@ class HordeJob:
                     time.sleep(10)
                     continue
                 if not pop.get("id"):
-                    skipped_info = pop.get("skipped")
-                    if skipped_info and len(skipped_info):
-                        skipped_info = f" Skipped Info: {skipped_info}."
+                    job_skipped_info = pop.get("skipped")
+                    if job_skipped_info and len(job_skipped_info):
+                        self.skipped_info = f" Skipped Info: {job_skipped_info}."
                     else:
-                        skipped_info = ""
-                    logger.info(f"Server {self.bd.horde_url} has no valid generations to do for us.{skipped_info}")
+                        self.skipped_info = ""
+                    # logger.info(f"Server {self.bd.horde_url} has no valid generations to do for us.{self.skipped_info}")
                     time.sleep(self.retry_interval)
                     continue
                 self.current_id = pop["id"]
                 self.current_payload = pop["payload"]
+            self.status = JobStatus.WORKING
             # Generate Image
             model = pop.get("model", available_models[0])
             # logger.info([self.current_id,self.current_payload])
@@ -193,7 +216,7 @@ class HordeJob:
                     self.status = JobStatus.FAULTED
                     break
                     # TODO: Send faulted
-            logger.debug(f"{req_type} ({model}) request with id {self.current_id} picked up. Initiating work...")
+            # logger.debug(f"{req_type} ({model}) request with id {self.current_id} picked up. Initiating work...")
             try:
                 safety_checker = (
                     self.model_manager.loaded_models["safety_checker"]["model"]
@@ -301,7 +324,9 @@ class HordeJob:
             seed = generator.images[0]["seed"]
             image.save(buffer, format="WebP", quality=90)
             # logger.info(info)
-            submit_dict = {
+            # We unload the generator from RAM
+            generator = None
+            self.submit_dict = {
                 "id": self.current_id,
                 "generation": base64.b64encode(buffer.getvalue()).decode("utf8"),
                 "api_key": self.bd.api_key,
@@ -309,55 +334,69 @@ class HordeJob:
                 "max_pixels": self.bd.max_pixels,
             }
             self.current_generation = seed
-            while self.current_id and self.current_generation is not None:
-                try:
-                    logger.debug(
-                        f"posting payload with size of {round(sys.getsizeof(json.dumps(submit_dict)) / 1024,1)} kb"
-                    )
-                    submit_req = requests.post(
-                        self.bd.horde_url + "/api/v2/generate/submit",
-                        json=submit_dict,
-                        headers=headers,
-                        timeout=20,
-                    )
-                    logger.debug(f"Upload completed in {submit_req.elapsed.total_seconds()}")
-                    try:
-                        submit = submit_req.json()
-                    except json.decoder.JSONDecodeError:
-                        logger.error(
-                            f"Something has gone wrong with {self.bd.horde_url} during submit. "
-                            f"Please inform its administrator!  (Retry {self.loop_retry}/10)"
-                        )
-                        time.sleep(self.retry_interval)
-                        continue
-                    if submit_req.status_code == 404:
-                        logger.warning("The generation we were working on got stale. Aborting!")
-                    elif not submit_req.ok:
-                        logger.warning(
-                            f"During gen submit, server {self.bd.horde_url} "
-                            f"responded with status code {submit_req.status_code}: "
-                            f"{submit['message']}. Waiting for 10 seconds...  (Retry {self.loop_retry}/10)"
-                        )
-                        if "errors" in submit:
-                            logger.warning(f"Detailed Request Errors: {submit['errors']}")
-                        time.sleep(10)
-                        continue
-                    else:
-                        logger.info(
-                            f'Submitted generation with id {self.current_id} and contributed for {submit_req.json()["reward"]}'
-                        )
-                    self.status = JobStatus.DONE
-                except requests.exceptions.ConnectionError:
-                    logger.warning(
-                        f"Server {self.bd.horde_url} unavailable during submit. Waiting 10 seconds...  (Retry {self.loop_retry}/10)"
-                    )
-                    time.sleep(10)
-                    continue
-                except requests.exceptions.ReadTimeout:
-                    logger.warning(
-                        f"Server {self.bd.horde_url} timed out during submit. Waiting 10 seconds...  (Retry {self.loop_retry}/10)"
-                    )
-                    time.sleep(10)
-                    continue
+            # Not a daemon, so that it can survive after this class is garbage collected
+            submit_thread = threading.Thread(target=self.submit_job, args=())
+            submit_thread.start()
             if not self.current_generation:
                 time.sleep(self.retry_interval)
+
+    def submit_job(self):
+        self.status = JobStatus.FINALIZING
+        while self.is_finalizing():
+            if self.loop_retry > 10:
+                logger.error(f"Exceeded retry count {self.loop_retry} for generation id {self.current_id}. Aborting generation!")
+                self.status = JobStatus.FAULTED
+                break
+            self.loop_retry += 1
+            try:
+                # logger.debug(
+                #     f"posting payload with size of {round(sys.getsizeof(json.dumps(self.submit_dict)) / 1024,1)} kb"
+                # )
+                submit_req = requests.post(
+                    self.bd.horde_url + "/api/v2/generate/submit",
+                    json=self.submit_dict,
+                    headers=self.headers,
+                    timeout=20,
+                )
+                # logger.debug(f"Upload completed in {submit_req.elapsed.total_seconds()}")
+                try:
+                    submit = submit_req.json()
+                except json.decoder.JSONDecodeError:
+                    logger.error(
+                        f"Something has gone wrong with {self.bd.horde_url} during submit. "
+                        f"Please inform its administrator!  (Retry {self.loop_retry}/10)"
+                    )
+                    time.sleep(self.retry_interval)
+                    continue
+                if submit_req.status_code == 404:
+                    logger.warning("The generation we were working on got stale. Aborting!")
+                    self.status = JobStatus.FAULTED
+                    break
+                elif not submit_req.ok:
+                    logger.warning(
+                        f"During gen submit, server {self.bd.horde_url} "
+                        f"responded with status code {submit_req.status_code}: "
+                        f"{submit['message']}. Waiting for 10 seconds...  (Retry {self.loop_retry}/10)"
+                    )
+                    if "errors" in submit:
+                        logger.warning(f"Detailed Request Errors: {submit['errors']}")
+                    time.sleep(10)
+                    continue
+                logger.info(
+                    f'Submitted generation with id {self.current_id} and contributed for {submit_req.json()["reward"]}'
+                )
+                self.status = JobStatus.DONE
+                break
+            except requests.exceptions.ConnectionError:
+                logger.warning(
+                    f"Server {self.bd.horde_url} unavailable during submit. Waiting 10 seconds...  (Retry {self.loop_retry}/10)"
+                )
+                time.sleep(10)
+                continue
+            except requests.exceptions.ReadTimeout:
+                logger.warning(
+                    f"Server {self.bd.horde_url} timed out during submit. Waiting 10 seconds...  (Retry {self.loop_retry}/10)"
+                )
+                time.sleep(10)
+                continue
+    

@@ -14,17 +14,26 @@ def bridge(model_manager, bd):
         bd.reload_data()
         bd.check_models(model_manager)
         bd.reload_models(model_manager)
+        polling_jobs = 0
         if len(running_jobs) < bd.max_threads:
             new_job = HordeJob(model_manager, bd)
             running_jobs.append(new_job)
-            logger.debug(f"started {new_job}")
-            time.sleep(0.5)
+            # logger.debug(f"started {new_job}")
             continue
         for job in running_jobs:
             if job.is_finished():
                 job.delete()
                 running_jobs.remove(job)
-                logger.debug(f"removed {job}")
+                # logger.debug(f"removed {job}")
+            elif job.is_polling():
+                polling_jobs += 1
+        if len(running_jobs) and polling_jobs == len(running_jobs):
+            found_reason = ''
+            for j in running_jobs:
+                if j.skipped_info != None:
+                    found_reason = j.skipped_info
+            logger.info(f"Server {bd.horde_url} has no valid generations to do for us.{found_reason}")
+        time.sleep(0.5)
 
 def check_mm_auth(model_manager):
     if model_manager.has_authentication():
