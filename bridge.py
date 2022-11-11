@@ -28,11 +28,12 @@ def bridge(model_manager, bd):
             elif job.is_polling():
                 polling_jobs += 1
         if len(running_jobs) and polling_jobs == len(running_jobs):
-            found_reason = ''
+            found_reason = None
             for j in running_jobs:
                 if j.skipped_info != None:
                     found_reason = j.skipped_info
-            logger.info(f"Server {bd.horde_url} has no valid generations to do for us.{found_reason}")
+            if found_reason:
+                logger.info(f"Server {bd.horde_url} has no valid generations to do for us.{found_reason}")
         time.sleep(0.5)
 
 def check_mm_auth(model_manager):
