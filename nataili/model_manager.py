@@ -66,6 +66,7 @@ class ModelManager:
         self.hf_auth = None
         self.set_authentication(hf_auth)
         self.disable_voodoo = disable_voodoo
+        self.stats = {}
 
     def init(self):
         dependencies_available = []
@@ -577,3 +578,28 @@ class ModelManager:
             if not self.check_dependency_available(dependency):
                 return False
         return True
+
+    def update_inference_stats(self, model_name, kudos):
+        if "inference" not in self.stats:
+            self.stats["inference"] = {}
+        if model_name not in self.stats["inference"]:
+            self.stats["inference"][model_name] = { "kudos": 0, "count": 0 }
+        self.stats["inference"][model_name]["count"] += 1
+        self.stats["inference"][model_name]["kudos"] += kudos
+        stats_for_model = self.stats["inference"][model_name]
+        self.stats["inference"][model_name]["avg_kpr"] = round(stats_for_model["kudos"] / stats_for_model["count"], 2)
+
+
+    def update_skipped_stats(self, model_idx):
+        if "skipped" not in self.stats:
+            self.stats["skipped"] = {}
+
+        modelsMapper = list(self.models.keys())
+        if len(modelsMapper) > model_idx:
+            model_name = modelsMapper[model_idx]
+            if model_name not in self.stats["skipped"]:
+                self.stats["skipped"][model_name] = 0
+            self.stats["skipped"][model_name] += 1
+
+    def get_pretty_stats(self):
+        return json.dumps(self.stats, indent=4)

@@ -22,6 +22,7 @@ class HordeJob:
         self.bd = bd
         self.current_id = None
         self.current_payload = None
+        self.current_model = None
         self.current_generation = None
         self.loop_retry = 0
         self.status = JobStatus.INIT
@@ -139,6 +140,7 @@ class HordeJob:
                     job_skipped_info = pop.get("skipped")
                     if job_skipped_info and len(job_skipped_info):
                         self.skipped_info = f" Skipped Info: {job_skipped_info}."
+                        self.model_manager.update_skipped_stats(job_skipped_info["models"])
                     else:
                         self.skipped_info = ""
                     # logger.info(f"Server {self.bd.horde_url} has no valid generations to do for us.{self.skipped_info}")
@@ -149,6 +151,7 @@ class HordeJob:
             self.status = JobStatus.WORKING
             # Generate Image
             model = pop.get("model", self.available_models[0])
+            self.current_model = model
             # logger.info([self.current_id,self.current_payload])
             use_nsfw_censor = self.current_payload.get("use_nsfw_censor", False)
             if self.bd.censor_nsfw and not self.bd.nsfw:
@@ -385,6 +388,9 @@ class HordeJob:
                     continue
                 logger.info(
                     f'Submitted generation with id {self.current_id} and contributed for {submit_req.json()["reward"]}'
+                )
+                self.model_manager.update_inference_stats(
+                    self.current_model, submit_req.json()["reward"]
                 )
                 self.status = JobStatus.DONE
                 break

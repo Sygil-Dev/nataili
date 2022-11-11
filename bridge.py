@@ -1,4 +1,5 @@
 import time
+import json
 
 from bridge import BridgeData, HordeJob, args, disable_voodoo
 from nataili.model_manager import ModelManager
@@ -8,6 +9,7 @@ from nataili.util import logger, quiesce_logger, set_logger_verbosity
 @logger.catch(reraise=True)
 def bridge(model_manager, bd):
     running_jobs = []
+    run_count = 0
     while True:
         bd.reload_data()
         bd.check_models(model_manager)
@@ -32,7 +34,12 @@ def bridge(model_manager, bd):
                     found_reason = j.skipped_info
             if found_reason is not None:
                 logger.info(f"Server {bd.horde_url} has no valid generations to do for us.{found_reason}")
+        run_count += 1
+        if run_count % 120 == 0:
+            logger.info(f"Stats this session: {model_manager.get_pretty_stats()}")
+            run_count = 0
         time.sleep(0.5)
+
 
 if __name__ == "__main__":
 
