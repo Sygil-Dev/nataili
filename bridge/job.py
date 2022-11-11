@@ -56,15 +56,15 @@ class HordeJob:
         thread.start()
 
     def is_finished(self):
-        return not self.status in [JobStatus.WORKING, JobStatus.POLLING, JobStatus.INIT]:
+        return not self.status in [JobStatus.WORKING, JobStatus.POLLING, JobStatus.INIT]
 
     def is_polling(self):
-        return self.status in [JobStatus.POLLING]:
+        return self.status in [JobStatus.POLLING]
 
     def is_finalizing(self):
         """True if generation has finished even if upload is still remaining
         """
-        return self.status in [JobStatus.FINALIZING]:
+        return self.status in [JobStatus.FINALIZING]
 
     def delete(self):
         del self
