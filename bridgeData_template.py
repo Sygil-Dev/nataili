@@ -14,6 +14,7 @@ priority_usernames = []
 # So if you put this to 2 (the minimum, your SD can only generate 64x64 pixels
 # If you put this to 32, it is equivalent to 1024x1024 pixels
 max_power = 8
+max_threads = 1
 # Set this to false, if you do not want your worker to receive requests for NSFW generations
 nsfw = True
 # Set this to True if you want your worker to censor NSFW generations. This will only be active is horde_nsfw == False
