@@ -2,6 +2,7 @@ import base64
 import json
 import sys
 import time
+import threading
 
 from base64 import binascii
 from io import BytesIO
@@ -12,9 +13,10 @@ from nataili.util import logger
 from nataili.inference.compvis import CompVis
 from nataili.inference.diffusers.inpainting import inpainting
 from bridge import JobStatus
+from bridge import disable_voodoo
 
 class HordeJob:
-
+    retry_interval = 1
     def __init__(self, mm, bd):
         self.model_manager = mm
         self.bd = bd
@@ -94,11 +96,11 @@ class HordeJob:
                     logger.error(
                         f"Could not decode response from {self.bd.horde_url} as json. Please inform its administrator!"
                     )
-                    time.sleep(interval)
+                    time.sleep(self.retry_interval)
                     continue
                 if pop is None:
                     logger.error(f"Something has gone wrong with {self.bd.horde_url}. Please inform its administrator!")
-                    time.sleep(interval)
+                    time.sleep(self.retry_interval)
                     continue
                 if not pop_req.ok:
                     logger.warning(
@@ -116,7 +118,7 @@ class HordeJob:
                     else:
                         skipped_info = ""
                     logger.info(f"Server {self.bd.horde_url} has no valid generations to do for us.{skipped_info}")
-                    time.sleep(interval)
+                    time.sleep(self.retry_interval)
                     continue
                 self.current_id = pop["id"]
                 self.current_payload = pop["payload"]
@@ -326,7 +328,7 @@ class HordeJob:
                             f"Something has gone wrong with {self.bd.horde_url} during submit. "
                             f"Please inform its administrator!  (Retry {self.loop_retry}/10)"
                         )
-                        time.sleep(interval)
+                        time.sleep(self.retry_interval)
                         continue
                     if submit_req.status_code == 404:
                         logger.warning("The generation we were working on got stale. Aborting!")
@@ -361,4 +363,4 @@ class HordeJob:
                     time.sleep(10)
                     continue
             if not self.current_generation:
-                time.sleep(interval)
+                time.sleep(self.retry_interval)

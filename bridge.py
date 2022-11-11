@@ -3,12 +3,12 @@ import os
 import time
 
 from nataili.util import logger, quiesce_logger, set_logger_verbosity
-from bridge import args, disable_voodoo, HordeJob
+from bridge import args, disable_voodoo, BridgeData, HordeJob
 from nataili.model_manager import ModelManager
 
 
 @logger.catch(reraise=True)
-def bridge(interval, model_manager, bd):
+def bridge(model_manager, bd):
     running_jobs = []
     while True:
         bd.reload_data()
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     model_manager.init()
     bridge_data = BridgeData()
     try:
-        bridge(args.interval, model_manager, bridge_data)
+        bridge(model_manager, bridge_data)
     except KeyboardInterrupt:
         logger.info("Keyboard Interrupt Received. Ending Process")
     logger.init(f"{bridge_data.worker_name} Instance", status="Stopped")
