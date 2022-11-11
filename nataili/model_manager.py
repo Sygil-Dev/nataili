@@ -590,16 +590,5 @@ class ModelManager:
         self.stats["inference"][model_name]["avg_kpr"] = round(stats_for_model["kudos"] / stats_for_model["count"], 2)
 
 
-    def update_skipped_stats(self, model_idx):
-        if "skipped" not in self.stats:
-            self.stats["skipped"] = {}
-
-        modelsMapper = list(self.models.keys())
-        if len(modelsMapper) > model_idx:
-            model_name = modelsMapper[model_idx]
-            if model_name not in self.stats["skipped"]:
-                self.stats["skipped"][model_name] = 0
-            self.stats["skipped"][model_name] += 1
-
     def get_pretty_stats(self):
         return json.dumps(self.stats, indent=4)

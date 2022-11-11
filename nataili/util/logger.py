@@ -106,33 +106,10 @@ logger.__class__.message = partialmethod(logger.__class__.log, "MESSAGE")
 
 config = {
     "handlers": [
-        {
-            "sink": sys.stderr,
-            "format": logfmt,
-            "colorize": True,
-            "filter": is_stderr_log,
-        },
-        {
-            "sink": sys.stdout,
-            "format": genfmt,
-            "level": "PROMPT",
-            "colorize": True,
-            "filter": is_stdout_log,
-        },
-        {
-            "sink": sys.stdout,
-            "format": initfmt,
-            "level": "INIT",
-            "colorize": True,
-            "filter": is_init_log,
-        },
-        {
-            "sink": sys.stdout,
-            "format": msgfmt,
-            "level": "MESSAGE",
-            "colorize": True,
-            "filter": is_msg_log,
-        },
+        {"sink": sys.stderr, "format": logfmt, "colorize": True, "filter": is_stderr_log,},
+        {"sink": sys.stdout, "format": genfmt, "level": "PROMPT", "colorize": True, "filter": is_stdout_log,},
+        {"sink": sys.stdout, "format": initfmt, "level": "INIT", "colorize": True, "filter": is_init_log,},
+        {"sink": sys.stdout, "format": msgfmt, "level": "MESSAGE", "colorize": True, "filter": is_msg_log,},
     ],
 }
 logger.configure(**config)

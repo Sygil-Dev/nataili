@@ -15,8 +15,10 @@ from nataili.inference.diffusers.inpainting import inpainting
 from bridge import JobStatus
 from bridge import disable_voodoo
 
+
 class HordeJob:
     retry_interval = 1
+
     def __init__(self, mm, bd):
         self.model_manager = mm
         self.bd = bd
@@ -54,24 +56,15 @@ class HordeJob:
         thread.start()
 
     def is_finished(self):
-        if self.status in [JobStatus.WORKING, JobStatus.POLLING, JobStatus.INIT]:
-            return(False)
-        else:
-            return(True)
+        return not self.status in [JobStatus.WORKING, JobStatus.POLLING, JobStatus.INIT]:
 
     def is_polling(self):
-        if self.status in [JobStatus.POLLING]:
-            return(True)
-        else:
-            return(False)
+        return self.status in [JobStatus.POLLING]:
 
     def is_finalizing(self):
-        '''True if generation has finished even if upload is still remaining
-        '''
-        if self.status in [JobStatus.FINALIZING]:
-            return(True)
-        else:
-            return(False)
+        """True if generation has finished even if upload is still remaining
+        """
+        return self.status in [JobStatus.FINALIZING]:
 
     def delete(self):
         del self
@@ -86,7 +79,9 @@ class HordeJob:
             if self.is_finished():
                 break
             if self.loop_retry > 10 and self.current_id:
-                logger.error(f"Exceeded retry count {self.loop_retry} for generation id {self.current_id}. Aborting generation!")
+                logger.error(
+                    f"Exceeded retry count {self.loop_retry} for generation id {self.current_id}. Aborting generation!"
+                )
                 self.status = JobStatus.FAULTED
                 break
             elif self.current_id:
@@ -124,7 +119,9 @@ class HordeJob:
                     time.sleep(self.retry_interval)
                     continue
                 if pop is None:
-                    logger.error(f"Something has gone wrong with {self.bd.horde_url}. Please inform its administrator!")
+                    logger.error(
+                        f"Something has gone wrong with {self.bd.horde_url}. Please inform its administrator!"
+                    )
                     time.sleep(self.retry_interval)
                     continue
                 if not pop_req.ok:
@@ -140,7 +137,6 @@ class HordeJob:
                     job_skipped_info = pop.get("skipped")
                     if job_skipped_info and len(job_skipped_info):
                         self.skipped_info = f" Skipped Info: {job_skipped_info}."
-                        self.model_manager.update_skipped_stats(job_skipped_info["models"])
                     else:
                         self.skipped_info = ""
                     # logger.info(f"Server {self.bd.horde_url} has no valid generations to do for us.{self.skipped_info}")
@@ -348,7 +344,9 @@ class HordeJob:
         }
         while self.is_finalizing():
             if self.loop_retry > 10:
-                logger.error(f"Exceeded retry count {self.loop_retry} for generation id {self.current_id}. Aborting generation!")
+                logger.error(
+                    f"Exceeded retry count {self.loop_retry} for generation id {self.current_id}. Aborting generation!"
+                )
                 self.status = JobStatus.FAULTED
                 break
             self.loop_retry += 1
@@ -389,9 +387,7 @@ class HordeJob:
                 logger.info(
                     f'Submitted generation with id {self.current_id} and contributed for {submit_req.json()["reward"]}'
                 )
-                self.model_manager.update_inference_stats(
-                    self.current_model, submit_req.json()["reward"]
-                )
+                self.model_manager.update_inference_stats(self.current_model, submit_req.json()["reward"])
                 self.status = JobStatus.DONE
                 break
             except requests.exceptions.ConnectionError:
@@ -406,4 +402,3 @@ class HordeJob:
                 )
                 time.sleep(10)
                 continue
-    
