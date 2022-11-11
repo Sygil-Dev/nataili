@@ -99,7 +99,7 @@ class HordeJob:
                         headers=self.headers,
                         timeout=10,
                     )
-                    # logger.debug(f"Job pop took {pop_req.elapsed.total_seconds()}")
+                    logger.debug(f"Job pop took {pop_req.elapsed.total_seconds()}")
                 except requests.exceptions.ConnectionError:
                     logger.warning(f"Server {self.bd.horde_url} unavailable during pop. Waiting 10 seconds...")
                     time.sleep(10)
@@ -216,7 +216,7 @@ class HordeJob:
                     self.status = JobStatus.FAULTED
                     break
                     # TODO: Send faulted
-            # logger.debug(f"{req_type} ({model}) request with id {self.current_id} picked up. Initiating work...")
+            logger.debug(f"{req_type} ({model}) request with id {self.current_id} picked up. Initiating work...")
             try:
                 safety_checker = (
                     self.model_manager.loaded_models["safety_checker"]["model"]
@@ -349,16 +349,16 @@ class HordeJob:
                 break
             self.loop_retry += 1
             try:
-                # logger.debug(
-                #     f"posting payload with size of {round(sys.getsizeof(json.dumps(self.submit_dict)) / 1024,1)} kb"
-                # )
+                logger.debug(
+                    f"posting payload with size of {round(sys.getsizeof(json.dumps(self.submit_dict)) / 1024,1)} kb"
+                )
                 submit_req = requests.post(
                     self.bd.horde_url + "/api/v2/generate/submit",
                     json=self.submit_dict,
                     headers=self.headers,
                     timeout=20,
                 )
-                # logger.debug(f"Upload completed in {submit_req.elapsed.total_seconds()}")
+                logger.debug(f"Upload completed in {submit_req.elapsed.total_seconds()}")
                 try:
                     submit = submit_req.json()
                 except json.decoder.JSONDecodeError:
