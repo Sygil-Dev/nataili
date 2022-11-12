@@ -578,4 +578,3 @@ class ModelManager:
             if not self.check_dependency_available(dependency):
                 return False
         return True
-
