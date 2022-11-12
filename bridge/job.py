@@ -13,7 +13,7 @@ from nataili.util import logger
 from nataili.inference.compvis import CompVis
 from nataili.inference.diffusers.inpainting import inpainting
 from bridge import JobStatus
-from bridge import disable_voodoo
+from bridge import disable_voodoo, bridge_stats
 
 
 class HordeJob:
@@ -384,10 +384,10 @@ class HordeJob:
                         logger.warning(f"Detailed Request Errors: {submit['errors']}")
                     time.sleep(10)
                     continue
-                logger.info(
+                logger.debug(
                     f'Submitted generation with id {self.current_id} and contributed for {submit_req.json()["reward"]}'
                 )
-                self.model_manager.update_inference_stats(self.current_model, submit_req.json()["reward"])
+                bridge_stats.update_inference_stats(self.current_model, submit_req.json()["reward"])
                 self.status = JobStatus.DONE
                 break
             except requests.exceptions.ConnectionError:

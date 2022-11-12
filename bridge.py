@@ -2,7 +2,7 @@ import time
 import json
 import requests
 
-from bridge import BridgeData, HordeJob, args, disable_voodoo
+from bridge import BridgeData, HordeJob, args, disable_voodoo, bridge_stats
 from nataili.model_manager import ModelManager
 from nataili.util import logger, quiesce_logger, set_logger_verbosity
 
@@ -11,6 +11,7 @@ from nataili.util import logger, quiesce_logger, set_logger_verbosity
 def bridge(model_manager, bd):
     running_jobs = []
     run_count = 0
+    logger.stats(f"Starting new stats session")
     while True:
         bd.reload_data()
         bd.check_models(model_manager)
@@ -36,15 +37,15 @@ def bridge(model_manager, bd):
             if found_reason is not None:
                 logger.info(f"Server {bd.horde_url} has no valid generations to do for us.{found_reason}")
         run_count += 1
-        if run_count % 120 == 0:
-            logger.info(f"Stats this session: {model_manager.get_pretty_stats()}")
+        if run_count % 240 == 0:
+            logger.stats(f"Stats this session:\n{bridge_stats.get_pretty_stats()}")
             try:
                 models_data = requests.get(bridge_data.horde_url + "/api/v2/status/models", timeout=10).json()
                 models_data.sort(key=lambda x: (x["eta"], x["queued"] / x["performance"]), reverse=True)
                 top_5 = [x["name"] for x in models_data[:5]]
-                logger.info(f"Top 5 models by Queued MP/MPS: {', '.join(top_5)}")
+                logger.stats(f"Top 5 models by load: {', '.join(top_5)}")
             except Exception as e:
-                logger.error(f"Failed to get models_req: {e}")
+                logger.debug(f"Failed to get models_req: {e}")
             run_count = 0
         time.sleep(0.5)
 
