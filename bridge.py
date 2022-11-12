@@ -1,7 +1,8 @@
 import time
+
 import requests
 
-from bridge import BridgeData, HordeJob, args, disable_voodoo, bridge_stats
+from bridge import BridgeData, HordeJob, args, bridge_stats, disable_voodoo
 from nataili.model_manager import ModelManager
 from nataili.util import logger, quiesce_logger, set_logger_verbosity
 
