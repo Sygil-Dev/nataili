@@ -66,7 +66,6 @@ class ModelManager:
         self.hf_auth = None
         self.set_authentication(hf_auth)
         self.disable_voodoo = disable_voodoo
-        self.stats = {}
 
     def init(self):
         dependencies_available = []
