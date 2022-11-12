@@ -1,5 +1,4 @@
 import time
-import json
 import requests
 
 from bridge import BridgeData, HordeJob, args, disable_voodoo, bridge_stats
@@ -11,7 +10,7 @@ from nataili.util import logger, quiesce_logger, set_logger_verbosity
 def bridge(model_manager, bd):
     running_jobs = []
     run_count = 0
-    logger.stats(f"Starting new stats session")
+    logger.stats("Starting new stats session")
     while True:
         bd.reload_data()
         bd.check_models(model_manager)
