@@ -5,6 +5,7 @@ import importlib
 import requests
 import getpass
 import threading
+from PIL import Image
 from nataili.util import logger
 from . import args
 
@@ -34,6 +35,9 @@ class BridgeData(object):
         self.allow_unsafe_ip = os.environ.get("HORDE_ALLOW_UNSAFE_IP", "true") == "true"
         self.model_names = os.environ.get("HORDE_MODELNAMES", "stable_diffusion").split(",")
         self.max_pixels = 64 * 64 * 8 * self.max_power
+        self.censor_image_sfw_worker = Image.open('assets/nsfw_censor_sfw_worker.png')
+        self.censor_image_censorlist = Image.open('assets/nsfw_censor_censorlist.png')
+        self.censor_image_sfw_request = Image.open('assets/nsfw_censor_sfw_request.png')
         self.initialized = False
         self.models_reloading = False
 
@@ -116,8 +120,7 @@ class BridgeData(object):
         if self.max_power < 2:
             self.max_power = 2
         self.max_pixels = 64 * 64 * 8 * self.max_power
-        if self.censor_nsfw or len(self.censorlist):
-            self.model_names.append("safety_checker")
+        self.model_names.append("safety_checker")
         if not self.initialized or previous_api_key != self.api_key:
             try:
                 user_req = requests.get(
