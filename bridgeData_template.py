@@ -55,3 +55,9 @@ models_to_load = [
     ## Enable this to allow inpainting/outpainting.
     # "stable_diffusion_inpainting",
 ]
+# If you set this to True, the worker will detect the most popular models and load them automatically ( Defaults to True if missing )
+# Note this ultimately overrides the models_to_load list
+dynamic_models = True
+
+# Adjust how many models to load into memory. In future this will likely be an argument for memory size or may disappear, but for right now, I'm lazy
+number_of_dynamic_models = 5

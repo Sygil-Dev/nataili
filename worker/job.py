@@ -208,7 +208,7 @@ class HordeJob:
             if self.current_payload.get("karras", False):
                 gen_payload["sampler_name"] = gen_payload.get("sampler_name", "k_euler_a") + "_karras"
         except KeyError as err:
-            logger.error("Received incomplete payload from job. Aborting. (%s)", err)
+            logger.error("Received incomplete payload from job. Aborting. ({})", err)
             self.status = JobStatus.FAULTED
             return
         # logger.debug(gen_payload)
@@ -373,7 +373,7 @@ class HordeJob:
         if self.r2_upload:
             put_response = requests.put(self.r2_upload, data=buffer.getvalue())
             generation = "R2"
-            logger.debug("R2 Upload response: %s", put_response)
+            logger.debug("R2 Upload response: {}", put_response)
         else:
             generation = base64.b64encode(buffer.getvalue()).decode("utf8")
         self.submit_dict = {
