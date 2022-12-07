@@ -351,9 +351,9 @@ class HordeJob:
             logger.debug(f"Post-processing with {post_processor}...")
             try:
                 self.image = post_process(post_processor, self.image, self.model_manager)
-            except AssertionError:
+            except (AssertionError, RuntimeError) as err:
                 logger.warning(
-                    f"Post-Processor '{post_processor}' encountered an error when working on image . Skipping!"
+                    "Post-Processor '{}' encountered an error when working on image . Skipping! {}", post_processor, err
                 )
             if post_processor in ["RealESRGAN_x4plus"]:
                 self.upload_quality = 50
