@@ -35,6 +35,7 @@ def bridge(this_model_manager, this_bridge_data):
                     try:
                         if time.time() - last_config_reload > 60:
                             reload_data(this_bridge_data)
+                            executor._max_workers = this_bridge_data.max_threads
                             logger.stats(f"Stats this session:\n{bridge_stats.get_pretty_stats()}")
                             try:
                                 models_data = requests.get(bridge_data.horde_url + "/api/v2/status/models", timeout=10).json()
