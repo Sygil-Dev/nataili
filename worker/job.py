@@ -84,7 +84,7 @@ class HordeJob:
                 self.bridge_data.horde_url + "/api/v2/generate/pop",
                 json=self.gen_dict,
                 headers=self.headers,
-                timeout=40,
+                timeout=50,
             )
             logger.debug(f"Job pop took {pop_req.elapsed.total_seconds()}")
         except requests.exceptions.ConnectionError:
@@ -399,7 +399,7 @@ class HordeJob:
                     self.bridge_data.horde_url + "/api/v2/generate/submit",
                     json=self.submit_dict,
                     headers=self.headers,
-                    timeout=40,
+                    timeout=60,
                 )
                 logger.debug(f"Upload completed in {submit_req.elapsed.total_seconds()}")
                 try:
