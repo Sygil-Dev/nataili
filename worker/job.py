@@ -35,7 +35,7 @@ class HordeJob:
         self.loop_retry = 0
         self.status = JobStatus.INIT
         self.skipped_info = None
-        self.upload_quality = 90
+        self.upload_quality = 95
         self.start_time = time.time()
         self.seed = None
         self.image = None
@@ -154,6 +154,7 @@ class HordeJob:
 
         self.current_id = pop["id"]
         self.current_payload = pop["payload"]
+        self.r2_upload = pop.get("r2_upload", False)
         self.status = JobStatus.WORKING
         # Generate Image
         model = pop.get("model", self.available_models[0])
@@ -357,10 +358,16 @@ class HordeJob:
                     post_processor,
                     err,
                 )
+            if self.r2_upload:
+                self.upload_quality = 95
+            else:
+                self.upload_quality = 75
             if post_processor in ["RealESRGAN_x4plus"]:
-                self.upload_quality = 50
+                if self.r2_upload:
+                    self.upload_quality = 90
+                else:
+                    self.upload_quality = 50
         # Not a daemon, so that it can survive after this class is garbage collected
-        self.r2_upload = pop.get("r2_upload")
         submit_thread = threading.Thread(target=self.submit_job, args=())
         submit_thread.start()
 
