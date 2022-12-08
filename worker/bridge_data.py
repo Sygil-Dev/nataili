@@ -52,6 +52,8 @@ class BridgeData:
         self.model = None
         self.dynamic_models = True
         self.number_of_dynamic_models = 2
+        self.models_to_skip = os.environ.get("HORDE_SKIPPED_MODELNAMES", "stable_diffusion_inpainting").split(",")
+        self.predefined_models = []
 
 
         disable_xformers.toggle(args.disable_xformers)
@@ -77,6 +79,8 @@ class BridgeData:
             self.max_power = bd.max_power
             if not self.dynamic_models:
                 self.model_names = bd.models_to_load
+            else:
+                self.predefined_models = bd.models_to_load
             try:
                 self.nsfw = bd.nsfw
             except AttributeError:
@@ -117,6 +121,10 @@ class BridgeData:
                 self.number_of_dynamic_models = bd.number_of_dynamic_models
             except AttributeError:
                 pass
+            try:
+                self.models_to_skip = bd.models_to_skip
+            except AttributeError:
+                pass
         except (ImportError, AttributeError) as err:
             logger.warning("bridgeData.py could not be loaded. Using defaults with anonymous account - {}", err)
         if args.api_key:
@@ -151,7 +159,7 @@ class BridgeData:
             try:
                 from creds import hf_password, hf_username
             except ImportError:
-                logger.info("Dynamic models enabled. Please setup creds.py so it won't prompt for authentication later")
+                logger.warning("Dynamic models enabled. Please setup creds.py so it won't prompt for authentication later")
         self.max_power = max(self.max_power, 2)
         self.max_pixels = 64 * 64 * 8 * self.max_power
         if self.censor_nsfw or (self.censorlist is not None and len(self.censorlist)):
