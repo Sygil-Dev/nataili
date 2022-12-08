@@ -361,12 +361,10 @@ class HordeJob:
             if self.r2_upload:
                 self.upload_quality = 95
             else:
-                self.upload_quality = 75
-            if post_processor in ["RealESRGAN_x4plus"]:
-                if self.r2_upload:
-                    self.upload_quality = 90
+                if post_processor in ["RealESRGAN_x4plus"]:
+                    self.upload_quality = 45
                 else:
-                    self.upload_quality = 50
+                    self.upload_quality = 75
         # Not a daemon, so that it can survive after this class is garbage collected
         submit_thread = threading.Thread(target=self.submit_job, args=())
         submit_thread.start()
