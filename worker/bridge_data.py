@@ -55,7 +55,6 @@ class BridgeData:
         self.models_to_skip = os.environ.get("HORDE_SKIPPED_MODELNAMES", "stable_diffusion_inpainting").split(",")
         self.predefined_models = []
 
-
         disable_xformers.toggle(args.disable_xformers)
         disable_local_ray_temp.toggle(args.disable_local_ray_temp)
         disable_voodoo.toggle(args.disable_voodoo)
@@ -157,9 +156,11 @@ class BridgeData:
             self.allow_unsafe_ip = args.allow_unsafe_ip
         if self.dynamic_models:
             try:
-                from creds import hf_password, hf_username
+                from creds import hf_password, hf_username  # noqa F401
             except ImportError:
-                logger.warning("Dynamic models enabled. Please setup creds.py so it won't prompt for authentication later")
+                logger.warning(
+                    "Dynamic models enabled. Please setup creds.py so it won't prompt for authentication later"
+                )
         self.max_power = max(self.max_power, 2)
         self.max_pixels = 64 * 64 * 8 * self.max_power
         if self.censor_nsfw or (self.censorlist is not None and len(self.censorlist)):

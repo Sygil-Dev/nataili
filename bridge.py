@@ -24,7 +24,7 @@ def bridge(this_model_manager, this_bridge_data):
     """This is the worker, it's the main workhorse that deals with getting requests, and spawning data processing"""
     running_jobs = []
     run_count = 0
-    last_config_reload = 0 # Means immediate config reload
+    last_config_reload = 0  # Means immediate config reload
     logger.stats("Starting new stats session")
     reload_data(this_bridge_data)
     try:
@@ -41,10 +41,13 @@ def bridge(this_model_manager, this_bridge_data):
                                 logger.warning(
                                     "You have more than half of your dynamic models predefined in models_to_load! "
                                     "This means there will be very little space to load models dynamically. "
-                                    "Please try to pre-specify at most half the amount of number_of_dynamic_models in models_to_load"
+                                    "Please try to pre-specify at most "
+                                    "half the amount of number_of_dynamic_models in models_to_load"
                                 )
                             try:
-                                models_data = requests.get(bridge_data.horde_url + "/api/v2/status/models", timeout=10).json()
+                                models_data = requests.get(
+                                    bridge_data.horde_url + "/api/v2/status/models", timeout=10
+                                ).json()
                                 models_data.sort(key=lambda x: (x["eta"], x["queued"]), reverse=True)
                                 top_5 = [x["name"] for x in models_data[:5]]
                                 logger.stats(f"Top 5 models by load: {', '.join(top_5)}")
@@ -57,7 +60,9 @@ def bridge(this_model_manager, this_bridge_data):
                                     dynamic_models.append(model["name"])
                                     if len(dynamic_models) >= this_bridge_data.number_of_dynamic_models:
                                         break
-                                logger.info("Dynamically loading new models to attack the relevant queue: {}", dynamic_models)
+                                logger.info(
+                                    "Dynamically loading new models to attack the relevant queue: {}", dynamic_models
+                                )
                                 this_bridge_data.model_names = dynamic_models
                             # pylint: disable=broad-except
                             except Exception as err:
@@ -67,7 +72,9 @@ def bridge(this_model_manager, this_bridge_data):
 
                         if len(this_model_manager.get_loaded_models_names()) == 0:
                             time.sleep(5)
-                            logger.info("No models loaded. Waiting for the first model to be up before polling the horde")
+                            logger.info(
+                                "No models loaded. Waiting for the first model to be up before polling the horde"
+                            )
                             continue
 
                         pop_count = 0
@@ -100,7 +107,10 @@ def bridge(this_model_manager, this_bridge_data):
 
                             # check if any job has run for more than 60 seconds
                             if job.running() and job.running_for() > 180:
-                                logger.warning("Restarting all jobs, as job as was running for more than 180 seconds: {}", job.running_for())
+                                logger.warning(
+                                    "Restarting all jobs, as job as was running for more than 180 seconds: {}",
+                                    job.running_for(),
+                                )
                                 for inner_job in running_jobs:  # Sometimes it's already removed
                                     running_jobs.remove(inner_job)
                                     job.cancel()
