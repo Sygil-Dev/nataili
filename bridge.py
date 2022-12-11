@@ -55,9 +55,11 @@ def bridge(this_model_manager, this_bridge_data):
                                             continue
                                         if model["name"] in total_models:
                                             continue
-                                        # If we've limited the amount of models to download, then we skip models which are not already downloaded
+                                        # If we've limited the amount of models to download,
+                                        # then we skip models which are not already downloaded
                                         if (
-                                            this_model_manager.count_available_models_by_types() >= this_bridge_data.max_models_to_download
+                                            this_model_manager.count_available_models_by_types()
+                                            >= this_bridge_data.max_models_to_download
                                             and model["name"] not in this_model_manager.get_available_models()
                                         ):
                                             continue
