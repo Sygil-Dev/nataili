@@ -44,7 +44,9 @@ def test_caption(model, fast_test=True):
             for m in min_length:
                 for t in top_p:
                     for r in repetition_penalty:
-                        caption = blip(image, num_beams=n, min_length=m, max_length=m+20, top_p=t, repetition_penalty=r)
+                        caption = blip(
+                            image, num_beams=n, min_length=m, max_length=m + 20, top_p=t, repetition_penalty=r
+                        )
                         logger.generation(f"Beams: {n}, Min: {m}, TopP: {t}, RepP: {r}: {caption}")
         caption = blip(image, sample=False)
         logger.generation(f"caption: {caption} sample: False")
