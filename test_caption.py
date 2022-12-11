@@ -21,7 +21,7 @@ def test_caption(model, fast_test=True):
     if model not in mm.loaded_models:
         tic = time.time()
         logger.init(f"{model}", status="Loading")
-        success = mm.load_model(model)
+        mm.load_model(model)
         logger.init_ok(f"Loading {model}", status="Success")
         toc = time.time()
         logger.init_ok(f"Loading {model}: Took {toc-tic} seconds", status="Success")
