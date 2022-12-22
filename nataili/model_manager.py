@@ -10,12 +10,12 @@ import open_clip
 import requests
 import torch
 from basicsr.archs.rrdbnet_arch import RRDBNet
+from codeformers import CodeFormer
 from diffusers import StableDiffusionInpaintPipeline
 from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker
 from gfpgan import GFPGANer
 from omegaconf import OmegaConf
 from realesrgan import RealESRGANer
-from codeformers import CodeFormer
 from tqdm import tqdm
 from transformers import logging
 
@@ -359,7 +359,7 @@ class ModelManager:
 
     def load_codeformers(self, model_name="", gpu_id=0):
 
-        #model_path = self.get_model_files(model_name)[0]["path"]
+        # model_path = self.get_model_files(model_name)[0]["path"]
         device = torch.device(f"cuda:{gpu_id}")
         model = CodeFormer().Cuda()
         return {"model": model, "device": device}
