@@ -10,13 +10,12 @@ import open_clip
 import requests
 import torch
 from basicsr.archs.rrdbnet_arch import RRDBNet
-from codeformers import CodeFormer
+from codeformer import CodeFormer
 from diffusers import StableDiffusionInpaintPipeline
 from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker
 from gfpgan import GFPGANer
 from omegaconf import OmegaConf
 from realesrgan import RealESRGANer
-from codeformer import CodeFormer
 from tqdm import tqdm
 from transformers import logging
 
