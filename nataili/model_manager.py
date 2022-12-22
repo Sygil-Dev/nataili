@@ -359,6 +359,7 @@ class ModelManager:
 
     def load_codeformers(self, model_name="", gpu_id=0):
 
+        model_path = self.get_model_files(model_name)[0]["path"]
         device = torch.device(f"cuda:{gpu_id}")
         model = CodeFormer().cuda()
         return {"model": model, "device": device}
