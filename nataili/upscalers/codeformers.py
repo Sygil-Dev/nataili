@@ -3,7 +3,7 @@ from nataili.postprocessor import *
 
 class codeformers(PostProcessor):
     def set_filename_append(self):
-        self.filename_append = "realesrgan"
+        self.filename_append = "codeformers"
 
     def process(self, img, img_array, **kwargs):
         output, _ = self.model.enhance(img_array)
