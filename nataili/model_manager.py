@@ -360,7 +360,7 @@ class ModelManager:
     def load_codeformers(self, model_name="", gpu_id=0):
 
         device = torch.device(f"cuda:{gpu_id}")
-        model = CodeFormer().Cuda()
+        model = CodeFormer().cuda()
         return {"model": model, "device": device}
 
     def load_blip(
