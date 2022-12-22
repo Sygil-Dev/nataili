@@ -30,6 +30,6 @@ upscaler = codeformers(
 
 results = upscaler(input_image=image)
 images = upscaler.output_images
-output_image = PIL.Image.open(images)
-output_image.save("./01_postprocessed.png")
+output_image = PIL.Image.open(images[0])
+images.PIL.save("./01_postprocessed.png")
 logger.init_ok(f"Job Completed", status="Success")
