@@ -6,7 +6,5 @@ class codeformers(PostProcessor):
         self.filename_append = "codeformers"
 
     def process(self, img, img_array, **kwargs):
-        output, _ = self.model.enhance(img_array)
-        output_array = np.array(output)
-        output_image = PIL.Image.fromarray(output_array)
+        output_image = self.model(img)
         return output_image
