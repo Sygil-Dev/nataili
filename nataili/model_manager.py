@@ -458,6 +458,9 @@ class ModelManager:
         elif self.models[model_name]["type"] == "gfpgan":
             self.loaded_models[model_name] = self.load_gfpgan(model_name, gpu_id)
             return True
+        elif self.models[model_name]["type"] == "CodeFormers":
+            self.loaded_models[model_name] = self.load_codeformers(model_name, gpu_id)
+            return True
         elif self.models[model_name]["type"] == "blip":
             self.loaded_models[model_name] = self.load_blip(model_name, precision, gpu_id, 512)
             return True
