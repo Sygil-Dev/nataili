@@ -15,6 +15,7 @@ from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionS
 from gfpgan import GFPGANer
 from omegaconf import OmegaConf
 from realesrgan import RealESRGANer
+from codeformers import CodeFormer
 from tqdm import tqdm
 from transformers import logging
 
@@ -354,6 +355,13 @@ class ModelManager:
             bg_upsampler=None,
             device=device,
         )
+        return {"model": model, "device": device}
+    
+    def load_codeformers(self, model_name="", gpu_id=0):
+
+        model_path = self.get_model_files(model_name)[0]["path"]
+        device = torch.device(f"cuda:{gpu_id}")
+        model = CodeFormer().Cuda()
         return {"model": model, "device": device}
 
     def load_blip(
