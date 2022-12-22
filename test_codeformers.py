@@ -30,3 +30,4 @@ upscaler = codeformers(
 
 results = upscaler(input_image=image)
 images = upscaler.output_images
+logger.init_ok(f"Job Completed", status="Success")
