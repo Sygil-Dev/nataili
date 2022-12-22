@@ -1,7 +1,7 @@
 import PIL
 
 from nataili.model_manager import ModelManager
-from nataili.upscalers.codeformers import codeformers
+from nataili.upscalers.codeformers import CodeFormers
 from nataili.util.logger import logger
 
 image = PIL.Image.open("./01.png").convert("RGB")
@@ -22,14 +22,10 @@ logger.init(f"Model: {model}", status="Loading")
 success = mm.load_model(model)
 logger.init_ok(f"Loading {model}", status=success)
 
-upscaler = codeformers(
+upscaler = CodeFormers(
     mm.loaded_models[model]["model"],
     mm.loaded_models[model]["device"],
-    "./",
 )
 
 results = upscaler(input_image=image)
-images = upscaler.output_images
-output_image = PIL.Image.open(images.img)
-output_image.PIL.save("./01_postprocessed.png")
 logger.init_ok(f"Job Completed", status="Success")
