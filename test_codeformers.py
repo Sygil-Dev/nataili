@@ -28,4 +28,4 @@ upscaler = CodeFormers(
 )
 
 results = upscaler(input_image=image)
-logger.init_ok(f"Job Completed", status="Success")
+logger.init_ok("Job Completed", status="Success")
