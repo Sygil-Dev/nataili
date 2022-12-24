@@ -5,8 +5,6 @@ import PIL
 from nataili.model_manager import ModelManager
 from nataili.upscalers.codeformers import CodeFormers
 from nataili.util.logger import logger
-from nataili.util.cache import torch_gc
-
 
 image = PIL.Image.open("./01.png").convert("RGB")
 

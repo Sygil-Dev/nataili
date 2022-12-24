@@ -1,4 +1,5 @@
 import time
+
 import PIL
 
 from nataili.model_manager import ModelManager
