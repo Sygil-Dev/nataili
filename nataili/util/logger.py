@@ -63,6 +63,7 @@ def is_stats_log(record):
         return False
     return True
 
+
 def is_not_stats_log(record):
     if record["level"].name in STATS_LEVELS:
         return False

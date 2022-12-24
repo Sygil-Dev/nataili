@@ -1,5 +1,6 @@
-import PIL
 import time
+
+import PIL
 
 from nataili.model_manager import ModelManager
 from nataili.upscalers.codeformers import CodeFormers
