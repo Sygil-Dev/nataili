@@ -34,5 +34,5 @@ for iter in range(5):
 
     tick = time.time()
     results = upscaler(input_image=image)
-    logger.init_ok(f"Job Completek. Took {time.time() - tick} seconds", status="Success")    
+    logger.init_ok(f"Job Completek. Took {time.time() - tick} seconds", status="Success")
     mm.unload_model(model)
