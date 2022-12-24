@@ -1,3 +1,4 @@
+import time
 import PIL
 
 from nataili.model_manager import ModelManager
@@ -28,5 +29,8 @@ upscaler = realesrgan(
     "./",
 )
 
-results = upscaler(input_image=image)
-images = upscaler.output_images
+for iter in range(1):
+    tick = time.time()
+    results = upscaler(input_image=image)
+    images = upscaler.output_images
+    logger.init_ok(f"Job Completed. Took {time.time() - tick} seconds", status="Success")

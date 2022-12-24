@@ -22,7 +22,7 @@ if model not in mm.available_models:
     mm.download_model(model)
     logger.init_ok(f"Downloaded {model}", status=True)
 
-for iter in range(3):
+for iter in range(5):
     logger.init(f"Model: {model}", status="Loading")
     success = mm.load_model(model)
     logger.init_ok(f"Loading {model}", status=success)
