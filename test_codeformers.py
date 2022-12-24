@@ -5,6 +5,8 @@ import PIL
 from nataili.model_manager import ModelManager
 from nataili.upscalers.codeformers import CodeFormers
 from nataili.util.logger import logger
+from nataili.util.cache import torch_gc
+
 
 image = PIL.Image.open("./01.png").convert("RGB")
 
@@ -20,16 +22,17 @@ if model not in mm.available_models:
     mm.download_model(model)
     logger.init_ok(f"Downloaded {model}", status=True)
 
-logger.init(f"Model: {model}", status="Loading")
-success = mm.load_model(model)
-logger.init_ok(f"Loading {model}", status=success)
+for iter in range(3):
+    logger.init(f"Model: {model}", status="Loading")
+    success = mm.load_model(model)
+    logger.init_ok(f"Loading {model}", status=success)
 
-upscaler = CodeFormers(
-    mm.loaded_models[model]["model"],
-    mm.loaded_models[model]["device"],
-)
+    upscaler = CodeFormers(
+        mm.loaded_models[model]["model"],
+        mm.loaded_models[model]["device"],
+    )
 
-for iter in range(8):
     tick = time.time()
     results = upscaler(input_image=image)
-    logger.init_ok(f"Job Completek. Took {time.time() - tick} seconds", status="Success")
+    logger.init_ok(f"Job Completek. Took {time.time() - tick} seconds", status="Success")    
+    mm.unload_model(model)
