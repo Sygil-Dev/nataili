@@ -1,4 +1,5 @@
 import PIL
+import time
 
 from nataili.model_manager import ModelManager
 from nataili.upscalers.codeformers import CodeFormers
@@ -27,5 +28,7 @@ upscaler = CodeFormers(
     mm.loaded_models[model]["device"],
 )
 
-results = upscaler(input_image=image)
-logger.init_ok("Job Completed", status="Success")
+for iter in range(8):
+    tick = time.time()
+    results = upscaler(input_image=image)
+    logger.init_ok(f"Job Completek. Took {time.time() - tick} seconds", status="Success")

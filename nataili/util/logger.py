@@ -63,6 +63,11 @@ def is_stats_log(record):
         return False
     return True
 
+def is_not_stats_log(record):
+    if record["level"].name in STATS_LEVELS:
+        return False
+    return True
+
 
 def is_trace_log(record):
     if record["level"].name not in ["TRACE", "ERROR"]:
@@ -154,6 +159,7 @@ config = {
             "format": logfmt,
             "level": "DEBUG",
             "colorize": False,
+            "filter": is_not_stats_log,
             "retention": "3 days",
         },
         {
