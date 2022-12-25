@@ -57,7 +57,7 @@ class HordeJob:
             "allow_painting": self.bridge_data.allow_painting,
             "allow_unsafe_ip": self.bridge_data.allow_unsafe_ip,
             "threads": self.bridge_data.max_threads,
-            "bridge_version": 8,
+            "bridge_version": 9,
         }
 
     def is_finished(self):
