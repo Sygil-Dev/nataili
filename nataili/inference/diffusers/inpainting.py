@@ -27,6 +27,7 @@ class inpainting:
         verify_input=True,
         auto_cast=True,
         filter_nsfw=False,
+        disable_voodoo=False,
     ):
         self.output_dir = output_dir
         self.output_file_path = output_file_path
