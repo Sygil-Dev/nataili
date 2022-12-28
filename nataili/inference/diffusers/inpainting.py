@@ -50,6 +50,7 @@ class inpainting:
         self.stats = ""
         self.images = []
         self.filter_nsfw = filter_nsfw
+        self.disable_voodoo = disable_voodoo
 
     def resize_image(self, resize_mode, im, width, height):
         LANCZOS = PIL.Image.Resampling.LANCZOS if hasattr(PIL.Image, "Resampling") else PIL.Image.LANCZOS
