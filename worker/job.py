@@ -331,6 +331,7 @@ class HordeJob:
                 self.model_manager.loaded_models[model]["device"],
                 "bridge_generations",
                 filter_nsfw=use_nsfw_censor,
+                disable_voodoo=self.bridge_data.disable_voodoo.active,
             )
         try:
             logger.debug("Starting generation...")
