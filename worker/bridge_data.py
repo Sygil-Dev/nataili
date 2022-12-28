@@ -78,10 +78,6 @@ class BridgeData:
             self.horde_url = bd.horde_url
             self.priority_usernames = bd.priority_usernames
             self.max_power = bd.max_power
-            if not self.dynamic_models:
-                self.model_names = bd.models_to_load
-            else:
-                self.predefined_models = bd.models_to_load
             try:
                 self.nsfw = bd.nsfw
             except AttributeError:
@@ -134,6 +130,10 @@ class BridgeData:
                 self.models_to_skip = bd.models_to_skip
             except AttributeError:
                 pass
+            if not self.dynamic_models:
+                self.model_names = bd.models_to_load
+            else:
+                self.predefined_models = bd.models_to_load
         except (ImportError, AttributeError) as err:
             logger.warning("bridgeData.py could not be loaded. Using defaults with anonymous account - {}", err)
         if args.api_key:
@@ -181,8 +181,7 @@ class BridgeData:
         self.model_names.append("safety_checker")
         self.model_names.append("GFPGAN")
         self.model_names.append("RealESRGAN_x4plus")
-        # We need to load this dynamically only when we need it
-        # self.model_names.append("CodeFormers")
+        self.model_names.append("CodeFormers")
         if not self.initialized or previous_api_key != self.api_key:
             try:
                 user_req = requests.get(
