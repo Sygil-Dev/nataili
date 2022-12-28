@@ -426,6 +426,7 @@ class ModelManager:
             torch_dtype=torch.float16 if precision == "half" else None,
             use_auth_token=self.models[model_name]["hf_auth"],
         )
+        pipe.enable_attention_slicing()
 
         if not self.disable_voodoo:
             logger.debug(f"Doing voodoo on {model_name}")
