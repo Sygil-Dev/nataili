@@ -24,7 +24,7 @@ if model not in mm.available_models:
 logger.init(f"Model: {model}", status="Loading")
 success = mm.load_model(model)
 logger.init_ok(f"Loading {model}", status=success)
-    
+
 for iter in range(5):
     upscaler = CodeFormers(
         mm.loaded_models[model]["model"],
@@ -34,4 +34,4 @@ for iter in range(5):
     tick = time.time()
     results = upscaler(input_image=image)
     logger.init_ok(f"Job Completed. Took {time.time() - tick} seconds", status="Success")
-    #mm.unload_model(model)
+    # mm.unload_model(model)
