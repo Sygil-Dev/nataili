@@ -162,25 +162,47 @@ class inpainting:
 
                 generator = torch.Generator(device=self.device).manual_seed(seed)
 
-                safety_checker = None
-                if not self.filter_nsfw:
-                    safety_checker = self.pipe.safety_checker
-                    self.pipe.safety_checker = None
-                
-                x_samples = self.pipe(
-                    prompt=prompt,
-                    image=inpaint_img,
-                    mask_image=inpaint_mask,
-                    guidance_scale=cfg_scale,
-                    num_inference_steps=ddim_steps,
-                    generator=generator,
-                    num_images_per_prompt=n_iter,
-                    width=width,
-                    height=height,
-                ).images
+                if not self.disable_voodoo:
+                    with load_diffusers_pipeline_from_plasma(self.pipe, self.device) as pipe:
+                        safety_checker = None
+                        if not self.filter_nsfw:
+                            safety_checker = pipe.safety_checker
+                            pipe.safety_checker = None
 
-                if safety_checker:
-                    self.pipe.safety_checker = safety_checker
+                        x_samples = pipe(
+                            prompt=prompt,
+                            image=inpaint_img,
+                            mask_image=inpaint_mask,
+                            guidance_scale=cfg_scale,
+                            num_inference_steps=ddim_steps,
+                            generator=generator,
+                            num_images_per_prompt=n_iter,
+                            width=width,
+                            height=height,
+                        ).images
+
+                        if safety_checker:
+                            pipe.safety_checker = safety_checker
+                else:
+                    safety_checker = None
+                    if not self.filter_nsfw:
+                        safety_checker = self.pipe.safety_checker
+                        self.pipe.safety_checker = None
+
+                    x_samples = self.pipe(
+                        prompt=prompt,
+                        image=inpaint_img,
+                        mask_image=inpaint_mask,
+                        guidance_scale=cfg_scale,
+                        num_inference_steps=ddim_steps,
+                        generator=generator,
+                        num_images_per_prompt=n_iter,
+                        width=width,
+                        height=height,
+                    ).images
+
+                    if safety_checker:
+                        self.pipe.safety_checker = safety_checker
                 
                 for i, x_sample in enumerate(x_samples):
                     image_dict = {"seed": seed, "image": x_sample}
