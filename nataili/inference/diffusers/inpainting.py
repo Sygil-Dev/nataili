@@ -13,6 +13,12 @@ from nataili.util.get_next_sequence_number import get_next_sequence_number
 from nataili.util.save_sample import save_sample
 from nataili.util.seed_to_int import seed_to_int
 
+from nataili import disable_voodoo
+try:
+    from nataili.util.voodoo import load_diffusers_pipeline_from_plasma, performance
+except ModuleNotFoundError as e:
+    if not disable_voodoo.active:
+        raise e
 
 class inpainting:
     def __init__(
@@ -113,11 +119,6 @@ class inpainting:
         width=512,
         save_individual_images: bool = True,
     ):
-
-        safety_checker = None
-        if not self.filter_nsfw:
-            safety_checker = self.pipe.safety_checker
-            self.pipe.safety_checker = None
         seed = seed_to_int(seed)
         inpaint_img = self.resize_image("resize", inpaint_img, width, height)
 
@@ -161,6 +162,11 @@ class inpainting:
 
                 generator = torch.Generator(device=self.device).manual_seed(seed)
 
+                safety_checker = None
+                if not self.filter_nsfw:
+                    safety_checker = self.pipe.safety_checker
+                    self.pipe.safety_checker = None
+                
                 x_samples = self.pipe(
                     prompt=prompt,
                     image=inpaint_img,
@@ -173,12 +179,13 @@ class inpainting:
                     height=height,
                 ).images
 
+                if safety_checker:
+                    self.pipe.safety_checker = safety_checker
+                
                 for i, x_sample in enumerate(x_samples):
                     image_dict = {"seed": seed, "image": x_sample}
 
                     self.images.append(image_dict)
-                    if safety_checker:
-                        self.pipe.safety_checker = safety_checker
 
                     if save_individual_images:
                         sanitized_prompt = slugify(prompt)
