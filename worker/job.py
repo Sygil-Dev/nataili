@@ -307,6 +307,18 @@ class HordeJob:
                 disable_voodoo=self.bridge_data.disable_voodoo.active,
             )
         else:
+            if model != 'stable_diffusion_inpainting':
+                # We remove the base64 from the prompt to avoid flooding the output on the error
+                if len(pop.get("source_image", "")) > 10:
+                    pop["source_image"] = len(pop.get("source_image", ""))
+                if len(pop.get("source_mask", "")) > 10:
+                    pop["source_mask"] = len(pop.get("source_mask", ""))
+                logger.error(
+                    "Received an inpainting request for a non-inpainting model. This shouldn't happen. "
+                    f"Inform the developer. Current payload {pop}"
+                )
+                self.status = JobStatus.FAULTED
+                return
             # These variables do not exist in the outpainting implementation
             if "save_grid" in gen_payload:
                 del gen_payload["save_grid"]
