@@ -311,13 +311,11 @@ class HordeJob:
                     gen_payload["init_mask"] = img_mask
             if model == "Stable Diffusion 2 Depth":
                 generator = Depth2Img(
-                    model=self.model_manager.loaded_models[model]["model"],
+                    pipe=self.model_manager.loaded_models[model]["model"],
                     device=self.model_manager.loaded_models[model]["device"],
-                    model_name=model,
                     output_dir="bridge_generations",
                     load_concepts=True,
                     concepts_dir="models/custom/sd-concepts-library",
-                    safety_checker=safety_checker,
                     filter_nsfw=use_nsfw_censor,
                     disable_voodoo=self.bridge_data.disable_voodoo.active
                 )
