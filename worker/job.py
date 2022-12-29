@@ -13,6 +13,7 @@ import requests
 from PIL import Image, UnidentifiedImageError
 
 from nataili.inference.compvis import CompVis
+from nataili.inference.diffusers.depth2img import Depth2Img
 from nataili.inference.diffusers.inpainting import inpainting
 from nataili.util import logger
 from worker.enums import JobStatus
@@ -308,17 +309,30 @@ class HordeJob:
                 gen_payload["init_img"] = img_source
                 if img_mask:
                     gen_payload["init_mask"] = img_mask
-            generator = CompVis(
-                model=self.model_manager.loaded_models[model]["model"],
-                device=self.model_manager.loaded_models[model]["device"],
-                model_name=model,
-                output_dir="bridge_generations",
-                load_concepts=True,
-                concepts_dir="models/custom/sd-concepts-library",
-                safety_checker=safety_checker,
-                filter_nsfw=use_nsfw_censor,
-                disable_voodoo=self.bridge_data.disable_voodoo.active,
-            )
+            if model == "Stable Diffusion 2 Depth":
+                generator = Depth2Img(
+                    model=self.model_manager.loaded_models[model]["model"],
+                    device=self.model_manager.loaded_models[model]["device"],
+                    model_name=model,
+                    output_dir="bridge_generations",
+                    load_concepts=True,
+                    concepts_dir="models/custom/sd-concepts-library",
+                    safety_checker=safety_checker,
+                    filter_nsfw=use_nsfw_censor,
+                    disable_voodoo=self.bridge_data.disable_voodoo.active
+                )
+            else:
+                generator = CompVis(
+                    model=self.model_manager.loaded_models[model]["model"],
+                    device=self.model_manager.loaded_models[model]["device"],
+                    model_name=model,
+                    output_dir="bridge_generations",
+                    load_concepts=True,
+                    concepts_dir="models/custom/sd-concepts-library",
+                    safety_checker=safety_checker,
+                    filter_nsfw=use_nsfw_censor,
+                    disable_voodoo=self.bridge_data.disable_voodoo.active,
+                )
         else:
             # These variables do not exist in the outpainting implementation
             if "save_grid" in gen_payload:
