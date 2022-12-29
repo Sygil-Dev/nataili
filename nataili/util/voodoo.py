@@ -73,10 +73,12 @@ def load_from_plasma(ref, device="cuda"):
     yield skeleton
     torch.cuda.empty_cache()
 
+
 def push_model_to_plasma(model: torch.nn.Module) -> ray.ObjectRef:
     ref = ray.put(extract_tensors(model))
 
     return ref
+
 
 @contextlib.contextmanager
 def load_diffusers_pipeline_from_plasma(ref, device="cuda"):
@@ -86,6 +88,7 @@ def load_diffusers_pipeline_from_plasma(ref, device="cuda"):
     pipe.to(device)
     yield pipe
     torch.cuda.empty_cache()
+
 
 def push_diffusers_pipeline_to_plasma(pipe) -> ray.ObjectRef:
     modules = {}
@@ -97,6 +100,7 @@ def push_diffusers_pipeline_to_plasma(pipe) -> ray.ObjectRef:
             modules[name] = weights
     ref = ray.put((pipe, modules))
     return ref
+
 
 def init_ait_module(
     model_name,
