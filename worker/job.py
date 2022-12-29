@@ -307,7 +307,7 @@ class HordeJob:
                 disable_voodoo=self.bridge_data.disable_voodoo.active,
             )
         else:
-            if model != 'stable_diffusion_inpainting':
+            if model != "stable_diffusion_inpainting":
                 # We remove the base64 from the prompt to avoid flooding the output on the error
                 if len(pop.get("source_image", "")) > 10:
                     pop["source_image"] = len(pop.get("source_image", ""))
