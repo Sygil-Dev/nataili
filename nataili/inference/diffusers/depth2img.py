@@ -111,25 +111,23 @@ class Depth2Img:
     def generate(
         self,
         prompt: str,
-        inpaint_img=None,
-        inpaint_mask=None,
+        input_img=None,
         ddim_steps=50,
         n_iter=1,
         batch_size=1,
         cfg_scale=7.5,
+        denoising_strength=0.7,
         seed=None,
         height=512,
         width=512,
         save_individual_images: bool = True,
     ):
         seed = seed_to_int(seed)
-        inpaint_img = self.resize_image("resize", inpaint_img, width, height)
-
-        # mask information has been transferred in the Alpha channel of the inpaint image
-        logger.debug(inpaint_mask)
-        if inpaint_mask is not None:
-            inpaint_mask = self.resize_image("resize", inpaint_mask, width, height)
-
+        input_img = self.resize_image("resize", input_img, width, height)
+        prompt_array=prompt.split("###")
+        prompt=prompt_array[0].strip()
+        n_prompt=prompt_array[1].strip()
+                            
         torch_gc()
 
         if self.load_concepts and self.concepts_dir is not None:
@@ -159,45 +157,29 @@ class Depth2Img:
 
                 if not self.disable_voodoo:
                     with load_diffusers_pipeline_from_plasma(self.pipe, self.device) as pipe:
-                        safety_checker = None
-                        if not self.filter_nsfw:
-                            safety_checker = pipe.safety_checker
-                            pipe.safety_checker = None
-
                         x_samples = pipe(
                             prompt=prompt,
-                            image=inpaint_img,
-                            mask_image=inpaint_mask,
+                            negative_prompt=n_prompt,
+                            image=input_img,
                             guidance_scale=cfg_scale,
+                            strength=denoising_strength,
                             num_inference_steps=ddim_steps,
                             generator=generator,
                             num_images_per_prompt=n_iter,
-                            width=width,
-                            height=height,
                         ).images
 
-                        if safety_checker:
-                            pipe.safety_checker = safety_checker
                 else:
-                    safety_checker = None
-                    if not self.filter_nsfw:
-                        safety_checker = self.pipe.safety_checker
-                        self.pipe.safety_checker = None
-
                     x_samples = self.pipe(
                         prompt=prompt,
-                        image=inpaint_img,
-                        mask_image=inpaint_mask,
+                        negative_prompt=n_prompt,
+                        image=input_img,
                         guidance_scale=cfg_scale,
                         num_inference_steps=ddim_steps,
+                        strength=denoising_strength,
                         generator=generator,
                         num_images_per_prompt=n_iter,
-                        width=width,
-                        height=height,
                     ).images
 
-                    if safety_checker:
-                        self.pipe.safety_checker = safety_checker
 
                 for i, x_sample in enumerate(x_samples):
                     image_dict = {"seed": seed, "image": x_sample}

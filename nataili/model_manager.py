@@ -188,7 +188,7 @@ class ModelManager:
         return self.dependencies[dependency_name]
 
     def get_model_files(self, model_name):
-        if self.models[model_name]["type"] == "diffusers":
+        if self.models[model_name]["type"] in ["diffusers", "depth2img"]:
             return []
         return self.models[model_name]["config"]["files"]
 
