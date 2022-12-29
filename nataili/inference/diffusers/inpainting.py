@@ -107,6 +107,7 @@ class inpainting:
 
         return res
 
+    @performance
     def generate(
         self,
         prompt: str,
