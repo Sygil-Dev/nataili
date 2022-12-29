@@ -12,13 +12,14 @@ from nataili.util.cache import torch_gc
 from nataili.util.get_next_sequence_number import get_next_sequence_number
 from nataili.util.save_sample import save_sample
 from nataili.util.seed_to_int import seed_to_int
-
 from nataili import disable_voodoo
+
 try:
     from nataili.util.voodoo import load_diffusers_pipeline_from_plasma, performance
 except ModuleNotFoundError as e:
     if not disable_voodoo.active:
         raise e
+
 
 class inpainting:
     def __init__(
@@ -204,7 +205,7 @@ class inpainting:
 
                     if safety_checker:
                         self.pipe.safety_checker = safety_checker
-                
+
                 for i, x_sample in enumerate(x_samples):
                     image_dict = {"seed": seed, "image": x_sample}
 
