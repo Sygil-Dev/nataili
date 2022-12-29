@@ -24,7 +24,7 @@ from ldm.util import instantiate_from_config
 from nataili.inference.aitemplate.ait_pipeline import StableDiffusionAITPipeline
 
 try:
-    from nataili.util.voodoo import init_ait_module, push_model_to_plasma, push_diffusers_pipeline_to_plasma
+    from nataili.util.voodoo import init_ait_module, push_diffusers_pipeline_to_plasma, push_model_to_plasma
 except ModuleNotFoundError as e:
     from nataili import disable_voodoo
 
