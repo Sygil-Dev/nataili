@@ -58,6 +58,38 @@
 		},
 		"available": false
 	},
+	"SD2 Depth": {
+		"name": "Stable Diffusion 2 Depth",
+		"type": "depth2img",
+		"description": "Generalist AI image generating model. The baseline for all finetuned models.",
+    "showcases": [
+      "https://huggingface.co/stabilityai/stable-diffusion-2-depth/resolve/main/depth2image.png"
+    ],
+		"version": "2.0",
+		"style": "generalist",
+		"nsfw": false,
+		"download_all": true,
+		"requires": ["clip-vit-large-patch14"],
+		"config": {
+			"files": [
+{
+					"path": "models/ldm/stable-diffusion-v2/model_2_depth.ckpt",
+					"md5sum": "64e6c71d47ac39fcc0975841963b224c"
+				},
+				{
+					"path": "configs/stable-diffusion/v2-inference.yaml"
+				}
+			],
+			"download": [
+				{
+					"file_name": "model_2_depth.ckpt",
+					"file_path": "models/ldm/stable-diffusion-v2",
+					"file_url": "https://huggingface.co/stabilityai/stable-diffusion-2-depth/resolve/main/512-depth-ema.ckpt"
+				}
+			]
+		},
+		"available": false
+	},
 	"stable_diffusion_1.4": {
 		"name": "stable_diffusion_1.4",
 		"type": "ckpt",
