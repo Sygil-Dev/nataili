@@ -7,12 +7,12 @@ import PIL.ImageOps
 import torch
 from slugify import slugify
 
+from nataili import disable_voodoo
 from nataili.util import logger
 from nataili.util.cache import torch_gc
 from nataili.util.get_next_sequence_number import get_next_sequence_number
 from nataili.util.save_sample import save_sample
 from nataili.util.seed_to_int import seed_to_int
-from nataili import disable_voodoo
 
 try:
     from nataili.util.voodoo import load_diffusers_pipeline_from_plasma, performance
