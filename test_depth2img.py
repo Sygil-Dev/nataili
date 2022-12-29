@@ -28,17 +28,13 @@ url = "http://images.cocodataset.org/val2017/000000039769.jpg"
 init_image = Image.open(requests.get(url, stream=True).raw)
 
 generator = Depth2Img(
-    model=mm.loaded_models[model]["model"],
+    pipe=mm.loaded_models[model]["model"],
     device=mm.loaded_models[model]["device"],
-    model_name=model,
     output_dir="bridge_generations",
-    load_concepts=False,
-    concepts_dir="models/custom/sd-concepts-library",
-    safety_checker=None,
     filter_nsfw=False,
     disable_voodoo=True
 )
 
 prompt = "two tigers ### bad, deformed, ugly, bad anatomy"
-output = generator.generate(prompt=prompt, image=init_image, height=480, width=640, strength=0.7).images[0]
-save = output.save("test.png")
+for iter in range(5):
+    output = generator.generate(prompt=prompt, input_img=init_image, height=480, width=640)
