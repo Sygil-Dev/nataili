@@ -323,6 +323,12 @@ class HordeJob:
                 if img_mask:
                     gen_payload["init_mask"] = img_mask
             if model == "Stable Diffusion 2 Depth":
+                if "save_grid" in gen_payload:
+                    del gen_payload["save_grid"]
+                if "sampler_name" in gen_payload:
+                    del gen_payload["sampler_name"]
+                if "denoising_strength" in gen_payload:
+                    del gen_payload["denoising_strength"]
                 generator = Depth2Img(
                     pipe=self.model_manager.loaded_models[model]["model"],
                     device=self.model_manager.loaded_models[model]["device"],

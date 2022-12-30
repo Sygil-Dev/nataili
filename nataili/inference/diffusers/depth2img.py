@@ -110,7 +110,7 @@ class Depth2Img:
     def generate(
         self,
         prompt: str,
-        input_img=None,
+        init_img=None,
         ddim_steps=50,
         n_iter=1,
         batch_size=1,
@@ -122,10 +122,12 @@ class Depth2Img:
         save_individual_images: bool = True,
     ):
         seed = seed_to_int(seed)
-        input_img = self.resize_image("resize", input_img, width, height)
-        prompt_array = prompt.split("###")
-        prompt = prompt_array[0].strip()
-        n_prompt = prompt_array[1].strip()
+        init_img = self.resize_image("resize", init_img, width, height)
+        negprompt = ""
+        if "###" in prompt:
+            prompt, negprompt = prompt.split("###", 1)
+            prompt = prompt.strip()
+            negprompt = negprompt.strip()
 
         torch_gc()
 
@@ -158,8 +160,8 @@ class Depth2Img:
                     with load_diffusers_pipeline_from_plasma(self.pipe, self.device) as pipe:
                         x_samples = pipe(
                             prompt=prompt,
-                            negative_prompt=n_prompt,
-                            image=input_img,
+                            negative_prompt=negprompt,
+                            image=init_img,
                             guidance_scale=cfg_scale,
                             strength=denoising_strength,
                             num_inference_steps=ddim_steps,
@@ -170,8 +172,8 @@ class Depth2Img:
                 else:
                     x_samples = self.pipe(
                         prompt=prompt,
-                        negative_prompt=n_prompt,
-                        image=input_img,
+                        negative_prompt=negprompt,
+                        image=init_img,
                         guidance_scale=cfg_scale,
                         num_inference_steps=ddim_steps,
                         strength=denoising_strength,
