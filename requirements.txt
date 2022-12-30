@@ -59,6 +59,8 @@ wget
 basicsr
 gfpgan
 realesrgan
+# we have to use the main branch due to depth2img
+# We'll pin once a released version supports it
 git+https://github.com/CompVis/latent-diffusion
 codeformer-perceptor  # required for CodeFormers
 
