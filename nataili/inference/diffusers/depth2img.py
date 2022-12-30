@@ -8,7 +8,6 @@ import torch
 from slugify import slugify
 
 from nataili import disable_voodoo
-from nataili.util import logger
 from nataili.util.cache import torch_gc
 from nataili.util.get_next_sequence_number import get_next_sequence_number
 from nataili.util.save_sample import save_sample
@@ -124,10 +123,10 @@ class Depth2Img:
     ):
         seed = seed_to_int(seed)
         input_img = self.resize_image("resize", input_img, width, height)
-        prompt_array=prompt.split("###")
-        prompt=prompt_array[0].strip()
-        n_prompt=prompt_array[1].strip()
-                            
+        prompt_array = prompt.split("###")
+        prompt = prompt_array[0].strip()
+        n_prompt = prompt_array[1].strip()
+
         torch_gc()
 
         if self.load_concepts and self.concepts_dir is not None:
@@ -179,7 +178,6 @@ class Depth2Img:
                         generator=generator,
                         num_images_per_prompt=n_iter,
                     ).images
-
 
                 for i, x_sample in enumerate(x_samples):
                     image_dict = {"seed": seed, "image": x_sample}

@@ -262,17 +262,17 @@ class HordeJob:
                 # TODO: Send faulted
         # Reject jobs for SD2Depth if not img2img
         if model == "Stable Diffusion 2 Depth" and req_type != "img2img":
-                # We remove the base64 from the prompt to avoid flooding the output on the error
-                if len(pop.get("source_image", "")) > 10:
-                    pop["source_image"] = len(pop.get("source_image", ""))
-                if len(pop.get("source_mask", "")) > 10:
-                    pop["source_mask"] = len(pop.get("source_mask", ""))
-                logger.error(
-                    "Received an non-img2img request for SD2Depth model. This shouldn't happen. "
-                    f"Inform the developer. Current payload {pop}"
-                )
-                self.status = JobStatus.FAULTED
-                return
+            # We remove the base64 from the prompt to avoid flooding the output on the error
+            if len(pop.get("source_image", "")) > 10:
+                pop["source_image"] = len(pop.get("source_image", ""))
+            if len(pop.get("source_mask", "")) > 10:
+                pop["source_mask"] = len(pop.get("source_mask", ""))
+            logger.error(
+                "Received an non-img2img request for SD2Depth model. This shouldn't happen. "
+                f"Inform the developer. Current payload {pop}"
+            )
+            self.status = JobStatus.FAULTED
+            return
         if model != "stable_diffusion_inpainting" and req_type == "inpainting":
             # Try to use inpainting model if available
             if "stable_diffusion_inpainting" in self.available_models:
@@ -330,7 +330,7 @@ class HordeJob:
                     load_concepts=True,
                     concepts_dir="models/custom/sd-concepts-library",
                     filter_nsfw=use_nsfw_censor,
-                    disable_voodoo=self.bridge_data.disable_voodoo.active
+                    disable_voodoo=self.bridge_data.disable_voodoo.active,
                 )
             else:
                 generator = CompVis(

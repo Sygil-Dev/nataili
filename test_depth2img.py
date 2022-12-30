@@ -1,7 +1,6 @@
-import torch
 import requests
 from PIL import Image
-from diffusers import StableDiffusionDepth2ImgPipeline
+
 from nataili.inference.diffusers.depth2img import Depth2Img
 from nataili.model_manager import ModelManager
 from nataili.util.logger import logger
@@ -32,7 +31,7 @@ generator = Depth2Img(
     device=mm.loaded_models[model]["device"],
     output_dir="bridge_generations",
     filter_nsfw=False,
-    disable_voodoo=True
+    disable_voodoo=True,
 )
 
 prompt = "two tigers ### bad, deformed, ugly, bad anatomy"

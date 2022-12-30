@@ -11,7 +11,7 @@ import requests
 import torch
 from basicsr.archs.rrdbnet_arch import RRDBNet
 from codeformer import CodeFormer
-from diffusers import StableDiffusionInpaintPipeline, StableDiffusionDepth2ImgPipeline
+from diffusers import StableDiffusionDepth2ImgPipeline, StableDiffusionInpaintPipeline
 from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker
 from gfpgan import GFPGANer
 from omegaconf import OmegaConf
