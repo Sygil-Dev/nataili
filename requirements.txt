@@ -50,7 +50,7 @@ realesrgan
 test-tube
 timm
 torch-fidelity
-git+https://github.com/huggingface/transformers
+transformers==4.26.0
 wget
 
 # Optional packages commonly used with Stable Diffusion workflow
