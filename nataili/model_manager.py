@@ -419,7 +419,7 @@ class ModelManager:
     def load_diffuser(self, model_name="", precision="half", gpu_id=0):
         model_path = self.models[model_name]["hf_path"]
         device = torch.device(f"cuda:{gpu_id}")
-        
+
         if model_name == "Stable Diffusion 2 Depth":
             pipe = StableDiffusionDepth2ImgPipeline.from_pretrained(
                 model_path,
@@ -434,7 +434,7 @@ class ModelManager:
                 torch_dtype=torch.float16 if precision == "half" else None,
                 use_auth_token=self.models[model_name]["hf_auth"],
             )
-        
+
         pipe.enable_attention_slicing()
 
         if not self.disable_voodoo:
