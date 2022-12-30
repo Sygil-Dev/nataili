@@ -188,7 +188,7 @@ class ModelManager:
         return self.dependencies[dependency_name]
 
     def get_model_files(self, model_name):
-        if self.models[model_name]["type"] in ["diffusers", "depth2img"]:
+        if self.models[model_name]["type"] == "diffusers":
             return []
         return self.models[model_name]["config"]["files"]
 
@@ -419,35 +419,22 @@ class ModelManager:
     def load_diffuser(self, model_name="", precision="half", gpu_id=0):
         model_path = self.models[model_name]["hf_path"]
         device = torch.device(f"cuda:{gpu_id}")
-
-        pipe = StableDiffusionInpaintPipeline.from_pretrained(
-            model_path,
-            revision="fp16" if precision == "half" else None,
-            torch_dtype=torch.float16 if precision == "half" else None,
-            use_auth_token=self.models[model_name]["hf_auth"],
-        )
-        pipe.enable_attention_slicing()
-
-        if not self.disable_voodoo:
-            logger.debug(f"Doing voodoo on {model_name}")
-            pipe = push_diffusers_pipeline_to_plasma(pipe)
+        
+        if model_name == "Stable Diffusion 2 Depth":
+            pipe = StableDiffusionDepth2ImgPipeline.from_pretrained(
+                model_path,
+                revision="fp16" if precision == "half" else None,
+                torch_dtype=torch.float16 if precision == "half" else None,
+                use_auth_token=self.models[model_name]["hf_auth"],
+            )
         else:
-            pipe.to(device)
-
-        torch_gc()
-
-        return {"model": pipe, "device": device}
-
-    def load_depth2img_diffuser(self, model_name="", precision="half", gpu_id=0):
-        model_path = self.models[model_name]["hf_path"]
-        device = torch.device(f"cuda:{gpu_id}")
-
-        pipe = StableDiffusionDepth2ImgPipeline.from_pretrained(
-            model_path,
-            revision="fp16" if precision == "half" else None,
-            torch_dtype=torch.float16 if precision == "half" else None,
-            use_auth_token=self.models[model_name]["hf_auth"],
-        )
+            pipe = StableDiffusionInpaintPipeline.from_pretrained(
+                model_path,
+                revision="fp16" if precision == "half" else None,
+                torch_dtype=torch.float16 if precision == "half" else None,
+                use_auth_token=self.models[model_name]["hf_auth"],
+            )
+        
         pipe.enable_attention_slicing()
 
         if not self.disable_voodoo:
@@ -482,9 +469,6 @@ class ModelManager:
             return False
         if self.models[model_name]["type"] == "ckpt":
             self.loaded_models[model_name] = self.load_ckpt(model_name, precision, gpu_id)
-            return True
-        elif self.models[model_name]["type"] == "depth2img":
-            self.loaded_models[model_name] = self.load_depth2img_diffuser(model_name)
             return True
         elif self.models[model_name]["type"] == "realesrgan":
             self.loaded_models[model_name] = self.load_realesrgan(model_name, precision, gpu_id)
