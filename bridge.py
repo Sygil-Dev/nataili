@@ -55,11 +55,28 @@ def bridge(this_model_manager, this_bridge_data):
                                     logger.stats(f"Top 5 models by load: {', '.join(top_5)}")
                                     total_models = this_bridge_data.predefined_models.copy()
                                     new_dynamic_models = []
+                                    running_models = get_running_models(running_jobs)
+                                    # Sometimes a dynamic model is wwaiting in the queue,
+                                    # and we do not wan to unload it
+                                    # However we also don't want to keep it loaded
+                                    # + the full amount of dynamic models
+                                    # as we may run out of RAM/VRAM.
+                                    # So we reduce the amount of dynamic models
+                                    # based on how many previous dynamic models we need to keep loaded
+                                    needed_previous_dynamic_models = 0
+                                    for model_name in running_models:
+                                        if model_name not in this_bridge_data.predefined_models:
+                                            needed_previous_dynamic_models += 1
                                     for model in models_data:
                                         if model["name"] in this_bridge_data.models_to_skip:
                                             continue
                                         if model["name"] in total_models:
                                             continue
+                                        if (
+                                            len(new_dynamic_models) + needed_previous_dynamic_models
+                                            >= this_bridge_data.number_of_dynamic_models
+                                        ):
+                                            break
                                         # If we've limited the amount of models to download,
                                         # then we skip models which are not already downloaded
                                         if (
@@ -70,16 +87,12 @@ def bridge(this_model_manager, this_bridge_data):
                                             continue
                                         total_models.append(model["name"])
                                         new_dynamic_models.append(model["name"])
-                                        if len(new_dynamic_models) >= this_bridge_data.number_of_dynamic_models:
-                                            break
                                     logger.info(
                                         "Dynamically loading new models to attack the relevant queue: {}",
                                         new_dynamic_models,
                                     )
                                     # Ensure we don't unload currently queued models
-                                    this_bridge_data.model_names = list(
-                                        set(total_models + get_running_models(running_jobs))
-                                    )
+                                    this_bridge_data.model_names = list(set(total_models + running_models))
                                 # pylint: disable=broad-except
                                 except Exception as err:
                                     logger.warning("Failed to get models_req to do dynamic model loading: {}", err)
@@ -99,6 +112,11 @@ def bridge(this_model_manager, this_bridge_data):
                             job = pop_job(this_model_manager, this_bridge_data)
                             if job:
                                 waiting_jobs.append((job))
+                                # The job sends the current models loaded in the MM to
+                                # the horde. That model might end up unloaded if it's dynamic
+                                # so we need to ensure it will be there next iteration.
+                                if job.current_model not in this_bridge_data.model_names:
+                                    this_bridge_data.model_names.append(job.current_model)
 
                         # Start new jobs
                         while len(running_jobs) < this_bridge_data.max_threads:
@@ -179,6 +197,7 @@ def get_running_models(running_jobs):
     running_models = []
     for (job_thread, start_time, job) in running_jobs:
         running_models.append(job.current_model)
+    # logger.debug(running_models)
     return running_models
 
 
