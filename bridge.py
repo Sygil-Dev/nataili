@@ -76,7 +76,8 @@ def bridge(this_model_manager, this_bridge_data):
                                         "Dynamically loading new models to attack the relevant queue: {}",
                                         new_dynamic_models,
                                     )
-                                    this_bridge_data.model_names = total_models
+                                    # Ensure we don't unload currently queued models
+                                    this_bridge_data.model_names = list(set(total_models + get_running_models(running_jobs)))
                                 # pylint: disable=broad-except
                                 except Exception as err:
                                     logger.warning("Failed to get models_req to do dynamic model loading: {}", err)
@@ -93,26 +94,26 @@ def bridge(this_model_manager, this_bridge_data):
 
                         # Add job to queue if we have space
                         if len(waiting_jobs) < this_bridge_data.queue_size:
-                            job, pop = pop_job(this_model_manager, this_bridge_data)
-                            if pop:
-                                waiting_jobs.append((job, pop))
+                            job = pop_job(this_model_manager, this_bridge_data)
+                            if job:
+                                waiting_jobs.append((job))
 
                         # Start new jobs
                         while len(running_jobs) < this_bridge_data.max_threads:
-                            job, pop = (None, None)
+                            job = None
                             # Queue disabled
                             if this_bridge_data.queue_size == 0:
-                                job, pop = pop_job(this_model_manager, this_bridge_data)
+                                job = pop_job(this_model_manager, this_bridge_data)
                             # Queue enabled
                             elif len(waiting_jobs) > 0:
-                                job, pop = waiting_jobs.pop(0)
+                                job = waiting_jobs.pop(0)
                             else:
                                 break
                             # Run the job
-                            if pop:
-                                job_model = pop.get("model", "Unknown")
+                            if job:
+                                job_model = job.current_model
                                 logger.debug("Starting job for model: {}", job_model)
-                                running_jobs.append((executor.submit(job.start_job, pop), time.monotonic(), job))
+                                running_jobs.append((executor.submit(job.start_job), time.monotonic(), job))
                                 logger.debug("job submitted")
                             else:
                                 logger.debug("No job to start")
@@ -164,16 +165,18 @@ def bridge(this_model_manager, this_bridge_data):
 
 # Helper functions
 def pop_job(this_model_manager, this_bridge_data):
-    # TODO: This class should be stored somewhere we can retrieve it,
-    # so that I can read some internal properties later.
     new_job = HordeJob(this_model_manager, this_bridge_data)
     pop = new_job.get_job_from_server()  # This sleeps itself, so no need for extra
     if pop:
-        job_model = pop.get("model", "Unknown")
-        logger.debug("Got a new job from the horde for model: {}", job_model)
-        return new_job, pop
-    return None, None
+        logger.debug("Got a new job from the horde for model: {}", new_job.current_model)
+        return new_job
+    return None
 
+def get_running_models(running_jobs):
+    running_models = []
+    for (job_thread, start_time, job) in running_jobs:
+        running_models.append(job.current_model)
+    return(running_models)
 
 if __name__ == "__main__":
     set_logger_verbosity(args.verbosity)
