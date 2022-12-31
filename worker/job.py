@@ -277,7 +277,9 @@ class HordeJob:
                 self.current_model = "stable_diffusion_inpainting"
             else:
                 req_type = "img2img"
-        logger.debug(f"{req_type} ({self.current_model}) request with id {self.current_id} picked up. Initiating work...")
+        logger.debug(
+            f"{req_type} ({self.current_model}) request with id {self.current_id} picked up. Initiating work..."
+        )
         try:
             safety_checker = (
                 self.model_manager.loaded_models["safety_checker"]["model"]

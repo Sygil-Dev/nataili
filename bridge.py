@@ -77,7 +77,9 @@ def bridge(this_model_manager, this_bridge_data):
                                         new_dynamic_models,
                                     )
                                     # Ensure we don't unload currently queued models
-                                    this_bridge_data.model_names = list(set(total_models + get_running_models(running_jobs)))
+                                    this_bridge_data.model_names = list(
+                                        set(total_models + get_running_models(running_jobs))
+                                    )
                                 # pylint: disable=broad-except
                                 except Exception as err:
                                     logger.warning("Failed to get models_req to do dynamic model loading: {}", err)
@@ -172,11 +174,13 @@ def pop_job(this_model_manager, this_bridge_data):
         return new_job
     return None
 
+
 def get_running_models(running_jobs):
     running_models = []
     for (job_thread, start_time, job) in running_jobs:
         running_models.append(job.current_model)
-    return(running_models)
+    return running_models
+
 
 if __name__ == "__main__":
     set_logger_verbosity(args.verbosity)
