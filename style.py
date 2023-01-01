@@ -9,12 +9,12 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 src = [
     "nataili",
-    "worker",
 ]
 
 ignore_src = [
-    "bridgeData_template.py",
-    "bridgeData.py",
+    "nataili/model_manager/new.py",
+    "nataili/util/blip/vit.py",
+    "nataili/util/blip/med.py",
 ]
 
 root_folder_src = glob.glob("*.py")
@@ -36,9 +36,7 @@ black_args = [
     "black",
     "--line-length=119",
 ]
-flake8_args = [
-    "flake8",
-]
+flake8_args = ["flake8", "--ignore=F401,E501,W503,F821"]
 isort_args = [
     "isort",
 ]

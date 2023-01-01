@@ -1,53 +1,312 @@
-This repository provides python libraries for running Stable Diffusion
+# Nataili: Multimodal AI Python Library
 
-Sample use:
+Nataili is a Python library that provides a set of tools to build multimodal AI applications. It provides a set of tools to build multimodal AI applications, including:
 
-```python
-from nataili.model_manager import ModelManager
-from nataili.inference.compvis import CompVis
-from nataili.util.cache import torch_gc
+* BLIP: Image captioning
+* CLIP: Image interrogation
+* ESRGAN: Image super-resolution
+* GFPGAN: Post-processing for faces
+* CodeFormer: Post-processing and super-resolution for faces
+* Stable Diffusion: Image generation
 
-# The model manager loads and unloads the SD models and has features to download them or find their location
-model_manager = ModelManager()
-model_manager.init()
-# The model to use for the generation.
-model = "stable_diffusion"
-success = model_manager.load_model(model)
-if success:
-    print(f'{model} loaded')
-else:
-    print(f'{model} load error')
-# Other classes exist like img2img
-generator = CompVis(model_manager.loaded_models[model]["model"], model_manager.loaded_models[model]["device"], 'output_dir')
-generator.generate('a donkey with a hat')
-torch_gc()
-# The image key in the generator contains a PIL image of the generation
-image = generator.images[0]["image"]
-image.save('a_donkey_with_a_hat.png', format="Png")
+It is designed to be modular, so you can use the tools you need and ignore the rest.
+
+## Installation
+
+`pip install nataili`
+
+From source:
+
+```
+git clone https://github.com/Sygil-Dev/nataili
+cd nataili
+pip install -e .
 ```
 
-You can find more complete scripts in `test.py`
+## Usage
 
-# Stable Horde Bridge
+### General information
 
-This repo contains the latest implementation for the [Stable Horde](https://stablehorde.net) Bridge. This will turn your graphics card(s) into a worker for the Stable Horde and you will receive in turn kudos which will give you priority for your own generations.
+#### Model manager
 
-To run the bridge, simply run:
+Nataili has a model manager that allows you to download and manage models. You can use it to download models, list models, and remove models.
 
-* Windows: `horde-bridge.cmd`
-* Linux: `horde-bridge.sh`
+Each service has a set of models that can be used. You can use the model manager to download the models you need.
 
-This will take care of the setup for this environment and then automatically start the bridge.
+The models for a service are stored in a .json file. These files are included in the package.
 
-For more information, see: https://github.com/db0/AI-Horde/blob/main/README_StableHorde.md#joining-the-horde
+Models will be downloaded to the `~/.cache/nataili` directory. The models are stored in a directory named after the service.
 
-## Experimental
+Structure of a model file:
 
-The bridge has experimental inpainting support via Diffusers library. This **can** work in parallel with the compvis/ckpt implementation, but it is not suggested unless you have plenty of VRAM to spare.
+```
+{
+  "": {
+    "name": "",
+    "type": "",
+    "config": {
+      "files": [
+        {
+          "path": ""
+        }
+      ],
+      "download": [
+        {
+          "file_name": "",
+          "file_path": "",
+          "file_url": ""
+        }
+      ]
+    },
+    "available": false
+  }
+}
+```
 
-**run `update-runtime.cmd` or `update-runtime.sh` as dependencies have been updated**
+* `key`: Key used to identify the model by the model manager
+* `name`: Name of the model, can be descriptive
+* `type`: Type of model, used by the model manager to identify the type of model
+* `config`: Configuration of the model
+  * `files`: List of files that are required for the model to work
+    * `path`: Path to the file
+  * `download`: Download information for the files
+    * `file_name`: Name of the file
+    * `file_path`: Path to the file
+    * `file_url`: URL to download the file
+* `available`: Whether the model is available or not, model manager will set this to true if the model is downloaded
 
-To set your worker to serve inpainting, add "stable_diffusion_inpainting" into your bridgeData's models_to_load list. The rest will be handled automatically. Workers without this model will not receive inpainting requests. Workers with **just** this model will **not** receive any requests **other** than inpainting! This will be fixed as soon as Diffusers are supported fully.
+There is a BaseModelManager class that has the basic functionality to manage models. You can use this class to create your own model manager for a service.
 
-## Model Usage
-Many models in this project use the CreativeML OpenRAIL License.  [Please read the full license here.](https://huggingface.co/spaces/CompVis/stable-diffusion-license)
+BaseModelManager functionality includes:
+
+* Downloading models
+* Listing models
+* Validating models
+* CUDA support detection
+
+Service ModelManager classes inherit from BaseModelManager and add functionality specific to the service. Generally speaking, Service ModelManager classes will have functionality to load the model.
+
+This is done with a `load()` function and a `load_<service>()` function. The `load()` function will call the `load_<service>()` function.
+`load()` is the external function that is called by the user, and `load_<service>()` is the internal function that is called by `load()`.
+
+`load_<service>()` will load the model and return it. `load()` will then store the model in `self.loaded_models` under the model key.
+
+`nataili/model_manager/new.py` can be used as a template for creating a new model manager.
+
+There is a Super ModelManager class that wraps the service ModelManager classes. This class is used to load models from multiple services.
+The individual service ModelManager classes are stored in `self.<service>`.
+
+Accessing the service ModelManager classes is done through `self.<service>.<function>`.
+
+#### Model manager usage
+Single service model manager usage:
+
+```
+from nataili import <service>ModelManager
+
+model_manager = <service>ModelManager()
+
+model_manager.load(<model_key>)
+```
+
+Super model manager usage:
+
+```
+from nataili import ModelManager
+
+model_manager = ModelManager()
+
+model_manager.<service>.load(<model_key>)
+```
+
+#### Service Classes
+
+Service classes are used to interact with the models.
+
+Service classes accept a loaded model as an argument. The model can be loaded with the model manager.
+
+Service classes are used with the `__call__` function. The `__call__` function accepts the input and returns the output.
+
+#### Utils
+
+Nataili has a set of utils that are used by the service classes and the model manager.
+
+### BLIP
+
+BLIP is a model that generates image captions. [arxiv](https://arxiv.org/abs/2201.12086).
+
+Models:
+* BLIP
+* BLIP Large
+
+Usage:
+
+```
+import PIL
+
+from nataili import Caption, ModelManager, logger
+
+image = PIL.Image.open("01.png").convert("RGB")
+
+mm = ModelManager()
+
+mm.blip.load("BLIP")
+
+blip = Caption(mm.blip.loaded_models["BLIP"])
+
+logger.generation(f"caption: {blip(image, sample=False)} - sample: False")
+```
+
+Options:
+
+```
+image: The image to caption. This can be a PIL.Image.Image or a path to an image.
+sample: Whether to sample or not. If False, the model will return the most likely caption.
+num_beams: The number of beams to use. This is only used if sample is False.
+max_length: The maximum length of the caption.
+min_length: The minimum length of the caption.
+top_p: The top p to use. This is only used if sample is True.
+repetition_penalty: The repetition penalty to use. This is only used if sample is True.
+```
+
+### CLIP
+
+CLIP (Contrastive Language-Image Pre-training). [arxiv](https://arxiv.org/abs/2103.00020).
+
+CLIP can be used to interrogate images. This means you can compare text to images and get a score for how similar they are.
+
+Text embeds are cached to speed up the process.
+
+Image embeds are cached to speed up the process.
+
+Models:
+* ViT-L/14
+* ViT-H-14
+* ViT-g-14
+
+Usage:
+
+```
+import PIL
+import os
+
+from nataili import Interrogator, ModelManager, logger
+
+image = PIL.Image.open("01.png").convert("RGB")
+
+mm = ModelManager()
+
+mm.clip.load("ViT-L/14")
+
+interrogator = Interrogator(mm.clip.loaded_models["ViT-L/14"])
+
+results = interrogator(image)
+logger.generation(results)
+```
+
+### CodeFormer
+
+CodeFormer is a model that can be used for face restoration. [arxiv](https://arxiv.org/abs/2206.11253).
+
+Models:
+* CodeFormer
+
+Usage:
+
+```
+import PIL
+import time
+
+from nataili import codeformers, ModelManager, logger
+
+image = PIL.Image.open("01.png").convert("RGB")
+
+mm = ModelManager()
+
+mm.codeformer.load("CodeFormers")
+
+upscaler = codeformers(mm.codeformer.loaded_models["CodeFormers"])
+
+results = upscaler(input_image=image)
+```
+
+### ESRGAN
+
+ESRGAN is a model that can be used for image super resolution. [arxiv](https://arxiv.org/abs/2107.10833).
+
+Models:
+* RealESRGAN_x4plus
+* RealESRGAN_x4plus_anime_6B
+* RealESRGAN_x2plus
+
+Usage:
+
+```
+import PIL
+import time
+
+from nataili import esrgan, ModelManager, logger
+
+image = PIL.Image.open("01.png").convert("RGB")
+
+mm = ModelManager()
+
+mm.esrgan.load("RealESRGAN_x4plus")
+
+upscaler = esrgan(mm.esrgan.loaded_models["RealESRGAN_x4plus"])
+
+results = upscaler(input_image=image)
+```
+
+### GFPGAN
+
+GFPGAN is a model that can be used for face restoration. [arxiv](https://arxiv.org/abs/2101.04061).
+
+Models:
+* GFPGAN v1.4
+
+Usage:
+
+```
+import PIL
+import time
+
+from nataili import gfpgan, ModelManager, logger
+
+image = PIL.Image.open("01.png").convert("RGB")
+
+mm = ModelManager()
+
+mm.gfpgan.load("GFPGAN")
+
+facefixer = gfpgan(mm.gfpgan.loaded_models["GFPGAN"])
+
+results = facefixer(input_image=image, strength=1.0)
+```
+
+### Stable Diffusion
+
+Stable Diffusion is a model that can be used for image generation. [arxiv](https://arxiv.org/abs/2112.10752).
+
+Models:
+* many
+
+Usage:
+
+```
+from nataili import CompVis, ModelManager, logger
+
+mm = ModelManager()
+mm.compvis.load("stable_diffusion")
+
+compvis = CompVis(mm.compvis.loaded_models["stable_diffusion"])
+compvis = CompVis(
+  model=mm.compvis.loaded_models["stable_diffusion"],
+  model_name="stable_diffusion",
+  output_dir="./output"
+)
+
+compvis.generate(
+  "a dog"
+)
+```

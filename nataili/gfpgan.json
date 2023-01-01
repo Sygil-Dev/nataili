@@ -1,0 +1,40 @@
+{
+	"GFPGAN": {
+		"name": "GFPGAN",
+		"type": "gfpgan",
+		"description": "Face correction.",
+		"version": "1.4",
+		"style": "generalist",
+		"config": {
+			"files": [
+				{
+					"path": "GFPGANv1.4.pth"
+				},
+				{
+					"path": "detection_Resnet50_Final.pth"
+				},
+				{
+					"path": "parsing_parsenet.pth"
+				}
+			],
+			"download": [
+				{
+					"file_name": "GFPGANv1.4.pth",
+					"file_path": "",
+					"file_url": "https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/GFPGANv1.4.pth"
+				},
+				{
+					"file_name": "detection_Resnet50_Final.pth",
+					"file_path": "",
+					"file_url": "https://github.com/xinntao/facexlib/releases/download/v0.1.0/detection_Resnet50_Final.pth"
+				},
+				{
+					"file_name": "parsing_parsenet.pth",
+					"file_path": "",
+					"file_url": "https://github.com/xinntao/facexlib/releases/download/v0.2.2/parsing_parsenet.pth"
+				}
+			]
+		},
+		"available": false
+	}
+}

@@ -25,7 +25,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-/conda/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -152,30 +151,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-
-# repo specific
-models/**/*.ckpt
-models/**/*.pth
-models/**/*.pt
-models/**/*.json
-models/**/*.bin
-models/**/*.txt
-models/**/*.yaml
-/outputs/
-/temp/
-/gfpgan/
-
-/installer_files/*
-.tmp*
-creds.py
-
-/test_output/*
-/bridge_generations/*
-z_version_env.tmp
-custom-conda-path.txt
-/bridgeData.py
-src/taming-transformers
-
-/xformers-*
-/bin/
-/ray
+test_output/
+logs/

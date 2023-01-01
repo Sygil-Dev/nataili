@@ -1,0 +1,40 @@
+{
+"BLIP": {
+    "name": "BLIP",
+    "type": "blip",
+    "config": {
+      "files": [
+        {
+          "path": "model__base_caption.pth"
+        }
+      ],
+      "download": [
+        {
+          "file_name": "model__base_caption.pth",
+          "file_path": "",
+          "file_url": "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base_caption.pth"
+        }
+      ]
+    },
+    "available": false
+  },
+  "BLIP_Large": {
+    "name": "BLIP_Large",
+    "type": "blip",
+    "config": {
+      "files": [
+        {
+          "path": "model_large_caption.pth"
+        }
+      ],
+      "download": [
+        {
+          "file_name": "model_large_caption.pth",
+          "file_path": "",
+          "file_url": "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_caption.pth"
+        }
+      ]
+    },
+    "available": false
+  }
+}

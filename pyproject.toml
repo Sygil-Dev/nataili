@@ -5,10 +5,41 @@ line-length = 119
 py_version = 38
 line_length = 119
 profile = "black"
-known_third_party = ["creds", "gfpgan", "ray", "bridgeData"]
+known_third_party = [""]
 
 [tool.pylint.FORMAT]
 max-line-length=500
 
 [tool.ruff]
 line-length = 500
+
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nataili"
+version = "0.2.0"
+authors = [
+    { name="hlky", email="goto@github.com" },
+]
+description = "Nataili: Multimodal AI Python Library"
+readme = "README.md"
+license = { file="LICENSE" }
+dynamic = ["dependencies"]
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/Sygil-Dev/nataili"
+"Bug Tracker" = "https://github.com/Sygil-Dev/nataili/issues"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.packages]
+find = {}

@@ -1,35 +1,31 @@
+"""
+This file is part of nataili ("Homepage" = "https://github.com/Sygil-Dev/nataili").
+
+Copyright 2022 hlky and Sygil-Dev
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 import contextlib
 import copy
 import os
-import shutil
-from functools import wraps
 from typing import Dict, List, Tuple, TypeVar
 
 import ray
 import torch
 
-from nataili import disable_local_ray_temp
-from nataili.inference.aitemplate.model import Model
-from nataili.util import logger
+from nataili.aitemplate import Model
 
 T = TypeVar("T")
-
-if not disable_local_ray_temp.active:
-    ray_temp_dir = os.path.abspath("./ray")
-    shutil.rmtree(ray_temp_dir, ignore_errors=True)
-    os.makedirs(ray_temp_dir, exist_ok=True)
-    ray.init(_temp_dir=ray_temp_dir)
-    logger.init(f"Ray temp dir '{ray_temp_dir}'", status="Prepared")
-else:
-    logger.init_warn("Ray temp dir'", status="OS Default")
-
-
-def performance(f: T) -> T:
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        return torch.cuda.amp.autocast()(torch.no_grad()(f))(*args, **kwargs)
-
-    return wrapper
 
 
 def extract_tensors(m: torch.nn.Module) -> Tuple[torch.nn.Module, List[Dict]]:
@@ -55,7 +51,6 @@ def extract_tensors(m: torch.nn.Module) -> Tuple[torch.nn.Module, List[Dict]]:
 def replace_tensors(m: torch.nn.Module, tensors: List[Dict], device="cuda"):
     modules = [module for _, module in m.named_modules()]
     for module, tensor_dict in zip(modules, tensors):
-        # There are separate APIs to set parameters and buffers.
         for name, array in tensor_dict["params"].items():
             module.register_parameter(
                 name,
@@ -76,7 +71,6 @@ def load_from_plasma(ref, device="cuda"):
 
 def push_model_to_plasma(model: torch.nn.Module) -> ray.ObjectRef:
     ref = ray.put(extract_tensors(model))
-
     return ref
 
 
@@ -112,11 +106,9 @@ def init_ait_module(
 
 def push_ait_module(module: Model) -> ray.ObjectRef:
     ref = ray.put(module)
-
     return ref
 
 
 def load_ait_module(ref):
     ait_module = ray.get(ref)
-
     return ait_module

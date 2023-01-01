@@ -1,0 +1,68 @@
+{
+	"RealESRGAN_x4plus": {
+		"name": "RealESRGAN_x4plus",
+		"type": "realesrgan",
+		"description": "4x Upscaler",
+		"version": "0.1.0",
+		"style": "generalist",
+		"config": {
+			"files": [
+				{
+					"path": "RealESRGAN_x4plus.pth"
+				}
+			],
+			"download": [
+				{
+					"file_name": "RealESRGAN_x4plus.pth",
+					"file_path": "",
+					"file_url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth"
+				}
+			]
+		},
+		"available": false
+	},
+	"RealESRGAN_x4plus_anime_6B": {
+		"name": "RealESRGAN_x4plus_anime_6B",
+		"type": "realesrgan",
+		"description": "Anime focused 4x upscaler",
+		"version": "0.2.2.4",
+		"style": "anime",
+		"config": {
+			"files": [
+				{
+					"path": "RealESRGAN_x4plus_anime_6B.pth"
+				}
+			],
+			"download": [
+				{
+					"file_name": "RealESRGAN_x4plus_anime_6B.pth",
+					"file_path": "",
+					"file_url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.2.4/RealESRGAN_x4plus_anime_6B.pth"
+				}
+			]
+		},
+		"available": false
+	},
+	"RealESRGAN_x2plus": {
+		"name": "RealESRGAN_x2plus",
+		"type": "realesrgan",
+		"description": "2x Upscaler",
+		"version": "0.1.0",
+		"style": "generalist",
+		"config": {
+			"files": [
+				{
+					"path": "RealESRGAN_x2plus.pth"
+				}
+			],
+			"download": [
+				{
+					"file_name": "RealESRGAN_x2plus.pth",
+					"file_path": "",
+					"file_url": "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/RealESRGAN_x2plus.pth"
+				}
+			]
+		},
+		"available": false
+	}
+}

@@ -1,0 +1,24 @@
+{
+	"CodeFormers": {
+		"name": "CodeFormers",
+		"type": "CodeFormers",
+		"description": "Upscaler.",
+		"version": "0.1.0",
+		"style": "generalist",
+		"config": {
+			"files": [
+				{
+					"path": "CodeFormers.pth"
+				}
+			],
+			"download": [
+				{
+					"file_name": "CodeFormers.pth",
+					"file_path": "",
+					"file_url": "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth"
+				}
+			]
+		},
+		"available": false
+	}
+}

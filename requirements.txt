@@ -1,79 +1,29 @@
--e .
-
+torch>=1.12.0+cu113
 ray
-
-# See: https://github.com/CompVis/taming-transformers/issues/176
-# do not uncomment -e git+https://github.com/CompVis/taming-transformers.git@master#egg=taming-transformers
 invisible-watermark
-taming-transformers-rom1504==0.0.6  # required by ldm
-
-git+https://github.com/crowsonkb/k-diffusion.git
-
-# Dependencies required for Stable Diffusion UI
-pynvml
+taming-transformers-rom1504
+k-diffusion @ git+https://github.com/crowsonkb/k-diffusion.git
 omegaconf
-
-# Note: Jinja2 3.x major version required due to breaking changes found in markupsafe==2.1.1; 2.0.1 is incompatible with other upstream dependencies
-# see https://github.com/pallets/markupsafe/issues/304
 Jinja2
-
-#diffusers==0.4.1
-diffusers==0.11.1
-
-# Img2text
+diffusers
 ftfy
 fairscale
-regex
 timm
 tqdm
-tensorboard
-
-
-# Other
-retry
 python-slugify
 piexif
-
 accelerate
-albumentations
 einops
 facexlib
-imageio-ffmpeg
-imageio
 kornia
 opencv-python-headless
 open-clip-torch
-pandas
-pudb
 pytorch-lightning
 realesrgan
-test-tube
-timm
-torch-fidelity
-git+https://github.com/huggingface/transformers
-wget
-
-# Optional packages commonly used with Stable Diffusion workflow
-
-# Upscalers
+transformers @ git+https://github.com/huggingface/transformers
 basicsr
 gfpgan
 realesrgan
-# we have to use the main branch due to depth2img
-# We'll pin once a released version supports it
-git+https://github.com/CompVis/latent-diffusion
-codeformer-perceptor  # required for CodeFormers
-
-## for monocular depth estimation 
-tensorflow
-
-## xformers
-xformers-0.0.14.dev0-cp38-cp38-win_amd64.whl; platform_system == "Windows"
-xformers-0.0.14.dev0-cp38-cp38-linux_x86_64.whl; platform_system == "Linux"
-
-# Unused Packages: No current usage but will be used in the future.
-
-
-# Orphaned Packages:  No usage found
-
-
+latent-diffusion @ git+https://github.com/CompVis/latent-diffusion
+codeformer-perceptor
+loguru
