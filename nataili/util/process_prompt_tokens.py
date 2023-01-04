@@ -2,8 +2,7 @@ import os
 
 from nataili.util.load_learned_embed_in_clip import load_learned_embed_in_clip
 
-
-def process_prompt_tokens(prompt_tokens, model, concepts_dir):
+def process_prompt_tokens(prompt_tokens, model, concepts_dir, model_baseline, embeds):
     # compviz codebase
     # tokenizer =  model.cond_stage_model.tokenizer
     # text_encoder = model.cond_stage_model.transformer
@@ -14,7 +13,8 @@ def process_prompt_tokens(prompt_tokens, model, concepts_dir):
     ext = (".pt", ".bin")
     for token_name in prompt_tokens:
         embedding_path = os.path.join(concepts_dir, token_name)
-        if os.path.exists(embedding_path):
+        if embeds["token_name"]["baseline"] == model_baseline:
+        #if os.path.exists(embedding_path):
             for files in os.listdir(embedding_path):
                 if files.endswith(ext):
                     load_learned_embed_in_clip(
