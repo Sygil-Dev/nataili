@@ -42,6 +42,7 @@ aitemplate = json.load(open("./aitemplate.json"))
 dependencies = json.load(open("./db_dep.json"))
 remote_models = "https://raw.githubusercontent.com/Sygil-Dev/nataili-model-reference/main/db.json"
 remote_dependencies = "https://raw.githubusercontent.com/Sygil-Dev/nataili-model-reference/main/db_dep.json"
+remote_embeds = "https://raw.githubusercontent.com/Sygil-Dev/nataili-model-reference/main/db_embeds.json"
 
 
 class ModelManager:
@@ -52,6 +53,8 @@ class ModelManager:
             self.models = json.load(open("./db.json"))
             self.dependencies = json.load(open("./db_dep.json"))
             self.aitemplates = json.load(open("./aitemplate.json"))
+            self.embeds = json.load(open("./db_embeds.json"))
+        self.available_embeds = []
         self.available_models = []
         self.available_aitemplates = []
         self.tainted_models = []
@@ -69,7 +72,9 @@ class ModelManager:
             r = requests.get(remote_models)
             self.models = r.json()
             r = requests.get(remote_dependencies)
-            self.dependencies = json.load(open("./db_dep.json"))
+            self.dependencies = r.json()
+            r = requests.get(remote_models)
+            self.embeds = r.json()
             logger.init_ok("Model Reference", status="OK")
             self.aitemplates = json.load(open("./aitemplate.json"))
         except Exception:
@@ -124,6 +129,11 @@ class ModelManager:
             if self.check_available(self.get_model_files(model)):
                 models_available.append(model)
         self.available_models = models_available
+
+        embeds_available = []
+        for embed in self.embeds:
+            embeds_available.append(embed)
+        self.available_embeds = embeds_available
 
         logger.info(f"Highest CUDA Compute Capability: {self.cuda_devices[0]['sm']}")
         logger.debug(f"Available CUDA Devices: {self.cuda_devices}")
@@ -231,6 +241,9 @@ class ModelManager:
 
     def get_available_models(self):
         return self.available_models
+
+    def get_available_embeds(self):
+        return self.embeds
 
     def get_available_models_by_types(self, model_types=None):
         if not model_types:

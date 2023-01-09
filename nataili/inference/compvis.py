@@ -43,6 +43,8 @@ class CompVis:
         output_file_path=False,
         load_concepts=False,
         concepts_dir=None,
+        model_baseline=None,
+        embeds=None,
         verify_input=True,
         auto_cast=True,
         filter_nsfw=False,
@@ -56,6 +58,8 @@ class CompVis:
         self.save_extension = save_extension
         self.load_concepts = load_concepts
         self.concepts_dir = concepts_dir
+        self.model_baseline = model_baseline
+        self.embeds = embeds
         self.verify_input = verify_input
         self.auto_cast = auto_cast
         self.device = device
@@ -336,7 +340,7 @@ class CompVis:
                 if self.load_concepts and self.concepts_dir is not None:
                     prompt_tokens = re.findall("<([a-zA-Z0-9-]+)>", prompt)
                     if prompt_tokens:
-                        process_prompt_tokens(prompt_tokens, model, self.concepts_dir)
+                        process_prompt_tokens(prompt_tokens, model, self.concepts_dir, self.model_baseline, self.embeds)
 
                 all_prompts = batch_size * n_iter * [prompt]
                 all_seeds = [seed + x for x in range(len(all_prompts))]
@@ -437,8 +441,7 @@ class CompVis:
             if self.load_concepts and self.concepts_dir is not None:
                 prompt_tokens = re.findall("<([a-zA-Z0-9-]+)>", prompt)
                 if prompt_tokens:
-                    process_prompt_tokens(prompt_tokens, self.model, self.concepts_dir)
-
+                    process_prompt_tokens(prompt_tokens, model, self.concepts_dir, self.model_baseline, self.embeds)
             all_prompts = batch_size * n_iter * [prompt]
             all_seeds = [seed + x for x in range(len(all_prompts))]
 

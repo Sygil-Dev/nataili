@@ -10,6 +10,7 @@ from slugify import slugify
 from nataili import disable_voodoo
 from nataili.util.cache import torch_gc
 from nataili.util.get_next_sequence_number import get_next_sequence_number
+from nataili.util.process_prompt_tokens import process_prompt_tokens
 from nataili.util.save_sample import save_sample
 from nataili.util.seed_to_int import seed_to_int
 
@@ -30,6 +31,8 @@ class Depth2Img:
         output_file_path=False,
         load_concepts=False,
         concepts_dir=None,
+        model_baseline=None,
+        embeds=None,
         verify_input=True,
         auto_cast=True,
         filter_nsfw=False,
@@ -40,6 +43,8 @@ class Depth2Img:
         self.save_extension = save_extension
         self.load_concepts = load_concepts
         self.concepts_dir = concepts_dir
+        self.model_baseline = model_baseline
+        self.embeds = embeds
         self.verify_input = verify_input
         self.auto_cast = auto_cast
         self.pipe = pipe
@@ -134,7 +139,7 @@ class Depth2Img:
         if self.load_concepts and self.concepts_dir is not None:
             prompt_tokens = re.findall("<([a-zA-Z0-9-]+)>", prompt)
             if prompt_tokens:
-                self.process_prompt_tokens(prompt_tokens)
+                process_prompt_tokens(prompt_tokens, pipe, self.concepts_dir, self.model_baseline, self.embeds)
 
         os.makedirs(self.output_dir, exist_ok=True)
 
